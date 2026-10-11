@@ -81,14 +81,15 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);o
 .fx{font-family:var(--display);font-size:12px;letter-spacing:.04em;padding:5px 9px;background:var(--panel);border-left:3px solid var(--gold);color:var(--gold);font-variant-numeric:tabular-nums}
 .fx.bad{border-color:var(--danger);color:#ffc7cd}
 
-#comms{position:fixed;left:16px;bottom:calc(var(--safe-b) + 92px);width:min(430px,calc(100vw - 32px));display:flex;gap:12px;align-items:stretch;background:var(--panel);border:2px solid var(--c,var(--cyan));padding:8px;pointer-events:none}
+#comms{position:fixed;left:16px;bottom:calc(var(--safe-b) + 92px);width:min(430px,calc(100vw - 32px));display:flex;gap:12px;align-items:stretch;background:rgba(10,5,22,.92);border:2px solid var(--c,var(--cyan));padding:8px;pointer-events:none;animation:commIn .35s ease-out;box-shadow:0 0 18px color-mix(in srgb,var(--c,#3ff0ff) 45%,transparent)}
+@keyframes commIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .portrait{width:72px;height:72px;flex:none;border:1px solid var(--c,var(--cyan));background:#0b0616;display:block;object-fit:cover}
 .commbody{min-width:0;display:grid;align-content:start;gap:3px}
 .who{font-family:var(--display);font-size:12px;letter-spacing:.12em;color:var(--c,var(--cyan))}
 .said{font-size:15px;line-height:1.35}
 .sub{font-family:var(--display);font-size:10px;letter-spacing:.12em;color:var(--dim)}
-#popups{position:fixed;left:50%;top:36%;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:2px}
-.pop{font-family:var(--display);font-size:16px;letter-spacing:.04em;color:var(--gold);white-space:nowrap;text-shadow:2px 2px 0 #0b0616;animation:pop .95s ease-out forwards}
+#popups{position:fixed;left:50%;top:20%;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pop{font-family:var(--display);font-size:15px;letter-spacing:.04em;color:var(--gold);white-space:nowrap;text-shadow:2px 2px 0 #0b0616;animation:pop .95s ease-out forwards}
 .pop.luck{color:var(--magenta)}
 .pop.bad{color:var(--danger)}
 .pop.big{font-size:22px}
@@ -120,7 +121,7 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);o
 #dropmark.node i{border-top-color:var(--cyan)}
 
 /* Touch controls */
-.stick{position:fixed;left:22px;bottom:calc(var(--safe-b) + 26px);width:136px;height:136px;border-radius:50%;border:2px solid rgba(63,240,255,.45);background:radial-gradient(circle,rgba(63,240,255,.10),rgba(14,7,30,.55) 70%);pointer-events:auto;touch-action:none}
+.stick{position:fixed;left:22px;bottom:calc(var(--safe-b) + 26px);width:136px;height:136px;border-radius:50%;border:2px solid rgba(63,240,255,.45);background:radial-gradient(circle,rgba(63,240,255,.10),rgba(14,7,30,.55) 70%);pointer-events:none;touch-action:none}
 .stick::before{content:"";position:absolute;inset:30%;border-radius:50%;border:1px dashed rgba(63,240,255,.3)}
 .knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9fdff,var(--cyan) 45%,#1a6f8a);box-shadow:0 4px 0 #0b0616;will-change:transform}
 .tbtns{position:fixed;right:20px;bottom:calc(var(--safe-b) + 26px);display:grid;grid-template-columns:auto auto;gap:12px;align-items:end;justify-items:center;pointer-events:auto}
@@ -134,14 +135,18 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);o
 .tb.missb{grid-column:2;grid-row:2;width:66px;height:66px;font-size:9px;border-color:rgba(255,46,136,.8);color:var(--magenta)}
 .tb.missb.down{background:rgba(255,46,136,.3)}
 .tb.bet{grid-column:1 / span 2;grid-row:1;width:66px;height:66px;font-size:11px;color:var(--night);background:var(--gold);border-color:#0b0616;box-shadow:0 0 16px rgba(255,194,61,.7)}
-body.touch .hud-bc{bottom:auto;top:calc(var(--safe-t) + 104px);width:min(340px,calc(100vw - 32px))}
-body.touch .bossbar{top:calc(var(--safe-t) + 156px)}
-body.touch .effects{left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 192px);flex-direction:row;flex-wrap:wrap;justify-content:center;width:calc(100vw - 32px)}
-body.touch #comms{bottom:auto;top:calc(var(--safe-t) + 228px)}
-body.touch .status{top:calc(var(--safe-t) + 74px)}
-body.touch #reels{top:calc(var(--safe-t) + 316px)}
-body.touch .portrait{width:56px;height:56px}
-body.touch .said{font-size:14px}
+body.touch .obj{font-size:10px;max-width:62vw;white-space:nowrap}
+body.touch .hud-bc{bottom:calc(var(--safe-b) + 212px);width:min(230px,calc(100vw - 32px))}
+body.touch #comms{bottom:auto;top:calc(var(--safe-t) + 128px);padding:6px;gap:8px}
+body.touch .portrait{width:44px;height:44px}
+body.touch .said{font-size:13px;line-height:1.3}
+body.touch .who{font-size:10px}
+body.touch .bossbar{top:calc(var(--safe-t) + 196px)}
+body.touch .effects{left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 232px);flex-direction:row;flex-wrap:wrap;justify-content:center;width:calc(100vw - 32px)}
+body.touch #popups{top:calc(var(--safe-t) + 264px)}
+body.touch .status{top:auto;bottom:calc(var(--safe-b) + 266px)}
+body.touch #reels{top:calc(var(--safe-t) + 280px)}
+#stickZone{position:fixed;left:0;bottom:0;width:50vw;height:62vh;z-index:19;touch-action:none}
 
 /* Story scenes: whole panel always on screen, caption below */
 .cine{position:fixed;inset:0;z-index:30;background:#000;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:calc(var(--safe-t) + 12px) 16px calc(var(--safe-b) + 16px)}
@@ -292,6 +297,7 @@ body.touch .said{font-size:14px}
 </div>
 
 <div id="touch" hidden>
+  <div id="stickZone"></div>
   <div class="stick" id="stick"><div class="knob" id="knob"></div></div>
   <div class="tbtns" id="tbtns">
     <button class="tb bet" id="tBet" type="button" hidden>Bet</button>
@@ -1079,14 +1085,14 @@ function updateComms(dt){
     box.style.setProperty('--c', s.c); $('#commImg').src = portraitURL[commCur.who];
     $('#commWho').textContent = s.name; $('#commText').textContent = ''; $('#commSub').textContent = '';
     box.hidden = false;
-    if(commCur.who === 'text' || commCur.who === 'jamie') sfx.ping();
+    sfx.ping();
   }
   if(commCur){
     commT += dt;
     const n = Math.min(commCur.text.length, Math.floor(commT*48)), el = $('#commText');
     if(el.textContent.length !== n) el.textContent = commCur.text.slice(0, n);
     if(n === commCur.text.length && commCur.sub && commT > commCur.text.length/48 + .8) $('#commSub').textContent = commCur.sub;
-    if(commT > commCur.text.length/48 + 2.4){ commCur = null; if(!commQ.length) $('#comms').hidden = true; }
+    if(commT > commCur.text.length/48 + 3.4){ commCur = null; if(!commQ.length) $('#comms').hidden = true; }
   }
 }
 const TIPS = {
@@ -1094,9 +1100,9 @@ const TIPS = {
     `<dl><dt style="color:var(--gold)">Shield bar · top left</dt><dd>Your health. Hits drain it. If it empties, you lose the run.</dd>
     <dt style="color:#8dffb0">Pay · top right</dt><dd>Every drop you make and every drone you shoot pays you.</dd>
     <dt style="color:var(--danger)">Bounty · top right</dt><dd>How bad the city wants you. Higher bounty, tougher crews.</dd>
-    <dt style="color:var(--magenta)">Your odds · ${touchMode ? 'top' : 'bottom'}</dt><dd>Close calls fill it. Past the white line you can bet on yourself.</dd></dl>`},
+    <dt style="color:var(--magenta)">Your odds · ${touchMode ? 'above your controls' : 'bottom'}</dt><dd>Close calls fill it. Past the white line you can bet on yourself.</dd></dl>`},
   steer:{step:'Controls', title:'Fly the truck', focus:() => touchMode ? ['.stick', '.tbtns'] : [], body:() => touchMode
-    ? 'Drag the <b>thumbstick</b> to steer up, down, left and right. Hold <b>Fire</b> to shoot. Hold <b>Boost</b> to speed up.'
+    ? 'Put your thumb <b>anywhere on the left half</b> of the screen and drag to steer. Hold <b>Fire</b> to shoot. Hold <b>Boost</b> to speed up.'
     : 'Steer with the <b>arrow keys</b> or <b>WASD</b>. Hold <b>Space</b> to shoot. Hold <b>Shift</b> to boost.'},
   drones:{step:'Threat', title:'Bounty drones', focus:() => touchMode ? ['.tbtns'] : [], body:() =>
     `Anything inside <b style="color:var(--danger)">red brackets</b> is hunting you. ${touchMode ? 'Hold <b>Fire</b>' : 'Hold <b>Space</b>'} and aim with the green sights to shoot them down. Each one pays.`},
@@ -1388,15 +1394,22 @@ function stickMove(e){
   const r = stickEl.getBoundingClientRect(), R = r.width/2 - 20;
   let dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2);
   const d = Math.hypot(dx, dy); if(d > R){ dx = dx/d*R; dy = dy/d*R; }
-  knob.style.transform = `translate(${dx}px, ${dy}px)`; stick.x = dx/R; stick.y = dy/R;
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  const curve = v => Math.abs(v) < .12 ? 0 : Math.sign(v)*Math.pow((Math.abs(v) - .12)/.88, 1.35);
+  stick.x = curve(dx/R); stick.y = curve(dy/R);
   const side = stick.x > .85 ? 1 : stick.x < -.85 ? -1 : 0;
   if(side && flick.armed){ const t = performance.now(); if(flick.side === side && t - flick.t < 340){ roll(side); flick.t = 0; } else { flick.side = side; flick.t = t; } flick.armed = false; }
   if(Math.abs(stick.x) < .4) flick.armed = true;
 }
-stickEl.addEventListener('pointerdown', e => { e.preventDefault(); stick.active = true; stick.id = e.pointerId; stickEl.setPointerCapture(e.pointerId); stickMove(e); });
-stickEl.addEventListener('pointermove', e => { if(stick.active && e.pointerId === stick.id) stickMove(e); });
-const stickEnd = e => { if(e.pointerId !== stick.id) return; stick.active = false; stick.x = stick.y = 0; knob.style.transform = ''; flick.armed = true; };
-stickEl.addEventListener('pointerup', stickEnd); stickEl.addEventListener('pointercancel', stickEnd);
+const zone = $('#stickZone');
+zone.addEventListener('pointerdown', e => {
+  e.preventDefault(); stick.active = true; stick.id = e.pointerId; zone.setPointerCapture(e.pointerId);
+  stickEl.style.left = (e.clientX - 68) + 'px'; stickEl.style.top = (e.clientY - 68) + 'px'; stickEl.style.bottom = 'auto';
+  stickMove(e);
+});
+zone.addEventListener('pointermove', e => { if(stick.active && e.pointerId === stick.id) stickMove(e); });
+const stickEnd = e => { if(e.pointerId !== stick.id) return; stick.active = false; stick.x = stick.y = 0; knob.style.transform = ''; flick.armed = true; stickEl.style.left = ''; stickEl.style.top = ''; stickEl.style.bottom = ''; };
+zone.addEventListener('pointerup', stickEnd); zone.addEventListener('pointercancel', stickEnd);
 function holdButton(el, set){
   el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture(e.pointerId); set(true); el.classList.add('down'); });
   for(const ev of ['pointerup','pointercancel','lostpointercapture']) el.addEventListener(ev, () => { set(false); el.classList.remove('down'); });
@@ -1578,7 +1591,7 @@ function endGame(win){
 function fireAt(from, tx, ty, speed){
   const m = new THREE.Mesh(geo.eb, mat.eb); m.position.copy(from);
   const halo = new THREE.Sprite(haloMat); halo.scale.set(2.4, 2.4, 1); m.add(halo); scene.add(m);
-  const v = new THREE.Vector3(tx - from.x, ty - from.y, -from.z).normalize().multiplyScalar(speed*(.9 + M.diff*.1));
+  const v = new THREE.Vector3(tx - from.x, ty - from.y, -from.z).normalize().multiplyScalar(speed*(.72 + M.diff*.08));
   eBullets.push({m, v, crossed:false});
   tip('roll');
 }
@@ -1593,10 +1606,16 @@ function burst(pos, color, n=14, spd=12){
 function damage(n){
   if(G.state !== 'play' || G.dead || G.endT >= 0) return;
   if(G.effects.snake) n *= 2;
-  G.shield -= n; G.luck = Math.max(0, G.luck - 12); G.combo = 0; G.mult = 1; G.shake = .5;
+  G.shield -= n; G.lastHit = G.t; G.luck = Math.max(0, G.luck - 12); G.combo = 0; G.mult = 1; G.shake = .5;
   sfx.hurt();
   const f = $('#flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 60);
   if(G.shield <= 0){ G.shield = 0; G.dead = true; ship.visible = false; burst(ship.position, COL.amber, 40, 18); burst(ship.position, COL.cyan, 30, 14); sfx.boom(); endGame(false); }
+}
+function aimTarget(x, y){
+  let best = null, bd = 4.2;
+  for(const e of enemies){ const p = e.m.position; if(p.z < -6 && p.z > -150){ const d = Math.hypot(p.x - x, p.y - y); if(d < bd){ bd = d; best = e.m; } } }
+  if(!best && G.boss && G.boss.state === 'fight'){ const p = G.boss.g.position; if(Math.hypot(p.x - x, p.y - y) < 6) best = G.boss.g; }
+  return best;
 }
 function hitEnemy(e, j, dmg){
   e.hp -= dmg; sfx.hit(); burst(e.m.position, COL.cyan, 4, 6);
@@ -1621,7 +1640,7 @@ const bossHitTest = (p) => { const B = G.boss; return B && B.state === 'fight' &
 /* ================= Update ================= */
 function update(dt){
   const playing = G.state === 'play';
-  const base = playing ? (M.ship === 'wild' ? 48 : 44) : (G.state === 'win' || G.state === 'over') ? 16 : 22;
+  const base = playing ? (M.ship === 'wild' ? 43 : 39) : (G.state === 'win' || G.state === 'over') ? 16 : 22;
   G.boosting = playing && !G.dead && (keys.ShiftLeft || keys.ShiftRight || touchBoost) && G.boost > 4;
   G.boost = G.boosting ? Math.max(0, G.boost - 36*dt) : Math.min(100, G.boost + 14*dt);
   G.speedNow += (base*(G.boosting ? 1.55 : 1) - G.speedNow) * Math.min(1, dt*3);
@@ -1660,6 +1679,7 @@ function update(dt){
     if(G.masked) G.bounty = Math.max((M.bounty || 250)*.5, G.bounty - 90*dt); else if(!G.dead) G.bounty += 4*dt;
     G.peakBounty = Math.max(G.peakBounty, G.bounty);
     if(G.missileCD > 0) G.missileCD -= dt;
+    if(!G.dead && G.t - (G.lastHit || 0) > 4 && G.shield < 100) G.shield = Math.min(100, G.shield + 3*dt);
     if(M.noBoss && G.t >= M.reachTime && G.endT < 0){ G.endT = 0; comm('trey', "We're out! We're OUT!"); }
   }
 
@@ -1682,7 +1702,7 @@ function update(dt){
       const spreads = G.effects.triple ? [-16, 0, 16] : [0];
       for(const sx of spreads) for(const lx of lanes){
         const m = new THREE.Mesh(geo.pb, wild ? basicMat(0xff9ad0) : mat.pb); m.position.set(P.x + lx, P.y, -2.4); scene.add(m);
-        pBullets.push({m, vx:sx, vz:-160});
+        pBullets.push({m, vx:sx, vz:-160, target:aimTarget(P.x + lx, P.y)});
       }
       sfx.shoot();
     }
@@ -1700,8 +1720,9 @@ function update(dt){
   for(let i=pBullets.length-1;i>=0;i--){
     const b = pBullets[i];
     b.m.position.x += b.vx*dt; b.m.position.z += b.vz*dt;
+    if(b.target && b.target.position.z < b.m.position.z){ const k = Math.min(1, dt*7); b.m.position.x += (b.target.position.x - b.m.position.x)*k; b.m.position.y += (b.target.position.y - b.m.position.y)*k; }
     let gone = b.m.position.z < -210;
-    if(!gone) for(let j=enemies.length-1;j>=0;j--){ const e = enemies[j]; if(b.m.position.distanceTo(e.m.position) < e.r + .5){ hitEnemy(e, j, 1); gone = true; break; } }
+    if(!gone) for(let j=enemies.length-1;j>=0;j--){ const e = enemies[j]; if(b.m.position.distanceTo(e.m.position) < e.r + .9){ hitEnemy(e, j, 1); gone = true; break; } }
     if(!gone && bossHitTest(b.m.position)){ gone = true; burst(b.m.position, COL.gold, 3, 6); hitBoss(1); }
     if(gone){ scene.remove(b.m); pBullets.splice(i, 1); }
   }
@@ -1748,7 +1769,7 @@ function update(dt){
     if(!e.crossed && prevZ < 0 && p.z >= 0){
       e.crossed = true;
       const d = Math.hypot(p.x - P.x, p.y - P.y);
-      if(d < e.r + .8){ damage(e.type === 'mine' ? 20 : 25); burst(p, COL.red, 16); scene.remove(e.m); enemies.splice(i, 1); continue; }
+      if(d < e.r + .6){ damage(e.type === 'mine' ? 15 : 18); burst(p, COL.red, 16); scene.remove(e.m); enemies.splice(i, 1); continue; }
       else if(d < e.r + 2.4){ G.close++; addLuck(6, 'close call'); }
     }
     if(p.z > 16){ scene.remove(e.m); enemies.splice(i, 1); }
@@ -1762,7 +1783,7 @@ function update(dt){
     if(!b.crossed && prevZ < 0 && p.z >= 0){
       b.crossed = true;
       const d = Math.hypot(p.x - P.x, p.y - P.y);
-      if(d < .95){ if(G.rollT > 0){ addLuck(4, 'deflected'); burst(p, COL.cyan, 8, 8); } else { damage(12); burst(p, COL.magenta, 8, 8); } gone = true; }
+      if(d < .95){ if(G.rollT > 0){ addLuck(4, 'deflected'); burst(p, COL.cyan, 8, 8); } else { damage(9); burst(p, COL.magenta, 8, 8); } gone = true; }
       else if(d < 2.3){ G.close++; addLuck(5, 'grazed'); }
     }
     if(gone){ scene.remove(b.m); eBullets.splice(i, 1); }
@@ -1776,7 +1797,7 @@ function update(dt){
     if(playing && !G.dead && c.m.visible && !c.crossed && prevZ < 0 && p.z >= 0){
       c.crossed = true;
       const ox = Math.abs(p.x - P.x) - 1.9, oy = Math.abs(p.y - P.y) - .7;
-      if(ox < 0 && oy < 0){ damage(15); burst(p, COL.red, 12, 9); popup('Clipped a car', 'bad'); }
+      if(ox < 0 && oy < 0){ damage(10); burst(p, COL.red, 12, 9); popup('Clipped a car', 'bad'); }
       else if(Math.max(ox, oy) < 1.0){ G.close++; addLuck(4, 'squeezed through'); }
     }
     if(p.z > 18){ scene.remove(c.m); cars.splice(i, 1); }
@@ -1789,7 +1810,7 @@ function update(dt){
     if(playing && !G.dead && !r.crossed && prevZ < 0 && r.m.position.z >= 0){
       r.crossed = true;
       const node = M.goal === 'nodes';
-      if(Math.hypot(P.x - r.x, P.y - r.y) < 2.1){
+      if(Math.hypot(P.x - r.x, P.y - r.y) < 2.9){
         G.dropsDone++; sfx.drop(); addLuck(8);
         payAdd(node ? 400 : (G.contract ? G.contract.pay/4 : 120), (node ? 'node ' : 'drop ') + r.n + ' of 4');
         burst(r.m.position, node ? COL.cyan : COL.gold, 24, 10);
@@ -1828,12 +1849,12 @@ function update(dt){
     if(playing && !G.dead && !o.crossed && prevZ < 0 && o.m.position.z >= 0){
       o.crossed = true;
       let hit = false, near = false;
-      if(o.type === 'gate'){ const off = Math.abs(P.x - o.gap) - (o.gw/2 - .9); hit = off > 0; near = !hit && off > -1.2; }
+      if(o.type === 'gate'){ const off = Math.abs(P.x - o.gap) - (o.gw/2 - .5); hit = off > 0; near = !hit && off > -1.2; }
       else {
-        const ox = Math.abs(P.x - o.x) - (o.hw + .9), oy = o.type === 'tower' ? P.y - (o.top + .35) : Math.abs(P.y - o.y) - (o.hh + .35);
+        const ox = Math.abs(P.x - o.x) - (o.hw + .55), oy = o.type === 'tower' ? P.y - (o.top + .15) : Math.abs(P.y - o.y) - (o.hh + .2);
         hit = ox < 0 && oy < 0; near = !hit && Math.max(ox, oy) < 1.3;
       }
-      if(hit){ damage(30); burst(ship.position, COL.gold, 18, 10); popup({bill:'Ate a billboard', tower:'Clipped a rooftop', gate:'Hit the gate', pipe:'Hit a pipe'}[o.type] || 'Hit the skyway', 'bad'); }
+      if(hit){ damage(22); burst(ship.position, COL.gold, 18, 10); popup({bill:'Ate a billboard', tower:'Clipped a rooftop', gate:'Hit the gate', pipe:'Hit a pipe'}[o.type] || 'Hit the skyway', 'bad'); }
       else if(near){ G.close++; addLuck(10, o.type === 'tower' ? 'skimmed the roof' : 'threaded it'); }
     }
     if(o.m.position.z > 24){ scene.remove(o.m); obstacles.splice(i, 1); }
