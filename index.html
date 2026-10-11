@@ -1,0 +1,1946 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#140b26">
+<style>*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>House Rules</title>
+<meta name="description" content="House Rules: a neon Las Vegas rail shooter. Deuce flies into the city's underworld to bring his brother home.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=Chakra+Petch:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: full-bleed cockpit. World renders underneath; HUD follows Star Fox (shield + hits top-left, money top-right, comms bottom-left, boost bottom-centre). Phones get a thumbstick bottom-left and action buttons bottom-right. Story plays as panels with captions under them. */
+:root{
+  --night:#140b26;
+  --panel:rgba(14,7,30,.8);
+  --line:rgba(255,194,61,.32);
+  --gold:#ffc23d;
+  --orange:#ff7a2e;
+  --magenta:#ff2e88;
+  --cyan:#3ff0ff;
+  --boost:#4aa8ff;
+  --amber:#ffb02e;
+  --ink:#f6eefe;
+  --dim:#b9a8d8;
+  --danger:#ff4d5e;
+  --display:'Bungee', Impact, 'Arial Black', sans-serif;
+  --shade:'Bungee Shade', 'Bungee', Impact, sans-serif;
+  --body:'Chakra Petch', 'Trebuchet MS', system-ui, sans-serif;
+  --safe-t:env(safe-area-inset-top, 0px);
+  --safe-b:env(safe-area-inset-bottom, 0px);
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);overflow:hidden;-webkit-user-select:none;user-select:none}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#game.glitch{filter:hue-rotate(70deg) contrast(1.35) saturate(1.4)}
+
+.hud{position:fixed;inset:0;pointer-events:none;z-index:20}
+#comms,#popups,#reels,.stick,.tbtns,#dropmark{z-index:20}
+.lbl{font-family:var(--display);font-size:11px;letter-spacing:.14em;color:var(--dim)}
+.hud-tl{position:absolute;left:16px;top:calc(var(--safe-t) + 14px);width:min(240px,44vw);display:grid;gap:4px}
+.shield{height:16px;border:2px solid #0b0616;outline:1px solid var(--line);background:rgba(0,0,0,.55);position:relative;overflow:hidden;transform:skewX(-16deg)}
+.shield i{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(180deg,#fff1a8,var(--gold) 45%,var(--orange));transition:width .15s}
+.shield i.low{background:linear-gradient(180deg,#ffb3ba,var(--danger));animation:blink .5s steps(2) infinite}
+.hits{display:flex;align-items:flex-end;gap:6px;margin-top:2px}
+.hits b{font-family:var(--display);font-weight:400;font-style:italic;font-size:clamp(30px,6vw,44px);line-height:.9;color:var(--cyan);font-variant-numeric:tabular-nums;text-shadow:2px 2px 0 #0b0616,0 0 14px rgba(63,240,255,.45)}
+.hits span{font-family:var(--display);font-size:11px;letter-spacing:.1em;color:var(--cyan);padding-bottom:4px}
+.missiles{display:flex;gap:5px;align-items:center;font-family:var(--display);font-size:10px;letter-spacing:.1em;color:var(--magenta)}
+.missiles i{width:7px;height:16px;background:var(--magenta);box-shadow:0 0 8px rgba(255,46,136,.7)}
+.missiles i.used{background:transparent;border:1px solid rgba(255,46,136,.5);box-shadow:none}
+.hud-tr{position:absolute;right:16px;top:calc(var(--safe-t) + 14px);display:grid;gap:3px;justify-items:end;text-align:right}
+.pay{font-family:var(--display);font-size:clamp(22px,4.4vw,34px);line-height:1;color:var(--gold);font-variant-numeric:tabular-nums;text-shadow:2px 2px 0 #0b0616}
+.bounty{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:13px;color:var(--danger);font-variant-numeric:tabular-nums}
+.pips{display:flex;gap:3px}
+.pips i{width:8px;height:12px;border:1px solid var(--danger);transform:skewX(-16deg)}
+.pips i.on{background:var(--danger)}
+.obj{font-family:var(--display);font-size:12px;letter-spacing:.06em;color:var(--ink);max-width:46vw}
+.hudbtns{display:flex;gap:6px;margin-top:6px;pointer-events:auto}
+.mini{font-family:var(--display);font-size:10px;letter-spacing:.1em;color:var(--dim);background:var(--panel);border:1px solid var(--line);padding:6px 8px;cursor:pointer}
+.mini:hover{color:var(--ink)}
+.mini:focus-visible,.cta:focus-visible,.ghost:focus-visible,.tb:focus-visible,.cbtn:focus-visible,.mission:focus-visible,.contract input:focus-visible + .ccard{outline:2px solid var(--cyan);outline-offset:3px}
+.status{position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 18px);font-family:var(--display);font-size:11px;letter-spacing:.14em;color:var(--cyan);background:var(--panel);border:1px solid var(--cyan);padding:5px 10px;white-space:nowrap}
+.bossbar{position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 52px);width:min(360px,calc(100vw - 32px));display:grid;gap:5px;text-align:center}
+.bossbar .lbl{color:var(--danger)}
+.bossbar .track{height:10px;border:1px solid var(--danger);background:rgba(0,0,0,.5);transform:skewX(-16deg);overflow:hidden;position:relative}
+.bossbar .track i{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(90deg,var(--danger),var(--gold))}
+.hud-bc{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 16px);width:min(440px,calc(100vw - 32px));display:grid;gap:6px}
+.oddshead{display:flex;align-items:baseline;gap:10px}
+.oddshead .pct{font-family:var(--display);font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums}
+.oddshint{margin-left:auto;font-family:var(--display);font-size:11px;letter-spacing:.06em;color:var(--dim)}
+.oddshint.ready{color:var(--gold);animation:blink 1s steps(2) infinite}
+.luck{position:relative;height:14px;border:1px solid var(--line);background:repeating-linear-gradient(90deg,rgba(0,0,0,.55) 0 calc(5% - 2px),rgba(255,194,61,.08) calc(5% - 2px) 5%)}
+.luck i{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,var(--gold),var(--magenta));transition:width .12s}
+.luck .minbet{position:absolute;left:25%;top:-5px;bottom:-5px;width:2px;background:var(--ink);opacity:.7}
+.luck.ready{box-shadow:0 0 14px rgba(255,194,61,.55)}
+.boost{height:9px;border:1px solid #0b0616;outline:1px solid rgba(74,168,255,.5);background:rgba(0,0,0,.55);transform:skewX(-16deg);position:relative;overflow:hidden}
+.boost i{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(180deg,#bfe2ff,var(--boost))}
+.effects{position:absolute;left:16px;top:calc(var(--safe-t) + 122px);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fx{font-family:var(--display);font-size:12px;letter-spacing:.04em;padding:5px 9px;background:var(--panel);border-left:3px solid var(--gold);color:var(--gold);font-variant-numeric:tabular-nums}
+.fx.bad{border-color:var(--danger);color:#ffc7cd}
+
+#comms{position:fixed;left:16px;bottom:calc(var(--safe-b) + 92px);width:min(430px,calc(100vw - 32px));display:flex;gap:12px;align-items:stretch;background:var(--panel);border:2px solid var(--c,var(--cyan));padding:8px;pointer-events:none}
+.portrait{width:72px;height:72px;flex:none;border:1px solid var(--c,var(--cyan));background:#0b0616;display:block;object-fit:cover}
+.commbody{min-width:0;display:grid;align-content:start;gap:3px}
+.who{font-family:var(--display);font-size:12px;letter-spacing:.12em;color:var(--c,var(--cyan))}
+.said{font-size:15px;line-height:1.35}
+.sub{font-family:var(--display);font-size:10px;letter-spacing:.12em;color:var(--dim)}
+#popups{position:fixed;left:50%;top:36%;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pop{font-family:var(--display);font-size:16px;letter-spacing:.04em;color:var(--gold);white-space:nowrap;text-shadow:2px 2px 0 #0b0616;animation:pop .95s ease-out forwards}
+.pop.luck{color:var(--magenta)}
+.pop.bad{color:var(--danger)}
+.pop.big{font-size:22px}
+.pop.cash{color:#8dffb0}
+@keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.9)}15%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-28px)}}
+#reels{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 92px);background:var(--panel);border:2px solid var(--gold);padding:10px 14px 9px;text-align:center;pointer-events:none}
+.reelrow{display:flex;gap:8px;justify-content:center}
+.reel{width:60px;height:50px;display:grid;place-items:center;background:#0b0616;border:1px solid var(--line);font-family:var(--display);font-size:22px;color:var(--gold)}
+#reelLabel{font-family:var(--display);font-size:13px;margin-top:8px;letter-spacing:.05em;min-height:1.2em}
+#reelLabel.win{color:var(--gold)}
+#reelLabel.lose{color:var(--danger)}
+#flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,40,70,.55));opacity:0;transition:opacity .3s}
+#flash.on{opacity:1;transition:none}
+.tip{position:fixed;inset:0;z-index:15;background:rgba(6,3,14,.55);display:grid;place-items:center;padding:calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 16px)}
+.tipcard{width:min(400px,100%);background:#0d0a14;border:2px solid var(--gold);padding:18px 18px 16px;display:grid;gap:8px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.tipstep{margin:0;font-family:var(--display);font-size:11px;letter-spacing:.16em;color:var(--magenta)}
+.tipcard h2{margin:0;font-family:var(--display);font-weight:400;font-size:22px;color:var(--gold)}
+.tipbody{margin:0;font-size:16px;line-height:1.45}
+.tipbody dl{margin:0;display:grid;gap:8px}
+.tipbody dt{font-family:var(--display);font-size:12px;letter-spacing:.08em}
+.tipbody dd{margin:2px 0 0;color:var(--dim);font-size:14px}
+.tiphint{margin:4px 0 0;font-family:var(--display);font-size:11px;letter-spacing:.1em;color:var(--dim);animation:blink 1.2s steps(2) infinite}
+.tip-focus{box-shadow:0 0 0 3px var(--gold),0 0 26px rgba(255,194,61,.8);animation:focus 1s ease-in-out infinite}
+@keyframes focus{50%{box-shadow:0 0 0 6px var(--gold),0 0 36px rgba(255,194,61,.9)}}
+#dropmark{position:fixed;left:0;top:0;transform:translate(-50%,-100%);pointer-events:none;display:grid;justify-items:center;gap:2px}
+#dropmark b{font-family:var(--display);font-weight:400;font-size:12px;letter-spacing:.08em;color:var(--night);background:var(--gold);padding:3px 8px;white-space:nowrap;box-shadow:0 0 14px rgba(255,194,61,.8)}
+#dropmark i{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:10px solid var(--gold)}
+#dropmark.node b{background:var(--cyan);box-shadow:0 0 14px rgba(63,240,255,.8)}
+#dropmark.node i{border-top-color:var(--cyan)}
+
+/* Touch controls */
+.stick{position:fixed;left:22px;bottom:calc(var(--safe-b) + 26px);width:136px;height:136px;border-radius:50%;border:2px solid rgba(63,240,255,.45);background:radial-gradient(circle,rgba(63,240,255,.10),rgba(14,7,30,.55) 70%);pointer-events:auto;touch-action:none}
+.stick::before{content:"";position:absolute;inset:30%;border-radius:50%;border:1px dashed rgba(63,240,255,.3)}
+.knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9fdff,var(--cyan) 45%,#1a6f8a);box-shadow:0 4px 0 #0b0616;will-change:transform}
+.tbtns{position:fixed;right:20px;bottom:calc(var(--safe-b) + 26px);display:grid;grid-template-columns:auto auto;gap:12px;align-items:end;justify-items:center;pointer-events:auto}
+.tb{border-radius:50%;font-family:var(--display);letter-spacing:.06em;color:var(--ink);background:var(--panel);border:2px solid var(--line);touch-action:none;padding:0}
+.tb.fire{grid-column:2;grid-row:3;width:92px;height:92px;font-size:14px;color:var(--night);background:radial-gradient(circle at 35% 30%,#ffb3d4,var(--magenta) 55%,#8a0f45);border-color:#0b0616;box-shadow:0 5px 0 #0b0616}
+.tb.fire.down{transform:translateY(3px);box-shadow:0 2px 0 #0b0616}
+.tb.boostb{grid-column:1;grid-row:3;width:62px;height:62px;font-size:10px;border-color:rgba(74,168,255,.7);color:#bfe2ff}
+.tb.boostb.down{background:rgba(74,168,255,.35)}
+.tb.rollb{grid-column:1;grid-row:2;width:62px;height:62px;font-size:10px;border-color:rgba(63,240,255,.7);color:var(--cyan)}
+.tb.rollb.down{background:rgba(63,240,255,.3)}
+.tb.missb{grid-column:2;grid-row:2;width:66px;height:66px;font-size:9px;border-color:rgba(255,46,136,.8);color:var(--magenta)}
+.tb.missb.down{background:rgba(255,46,136,.3)}
+.tb.bet{grid-column:1 / span 2;grid-row:1;width:66px;height:66px;font-size:11px;color:var(--night);background:var(--gold);border-color:#0b0616;box-shadow:0 0 16px rgba(255,194,61,.7)}
+body.touch .hud-bc{bottom:auto;top:calc(var(--safe-t) + 104px);width:min(340px,calc(100vw - 32px))}
+body.touch .bossbar{top:calc(var(--safe-t) + 156px)}
+body.touch .effects{left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 192px);flex-direction:row;flex-wrap:wrap;justify-content:center;width:calc(100vw - 32px)}
+body.touch #comms{bottom:auto;top:calc(var(--safe-t) + 228px)}
+body.touch .status{top:calc(var(--safe-t) + 74px)}
+body.touch #reels{top:calc(var(--safe-t) + 316px)}
+body.touch .portrait{width:56px;height:56px}
+body.touch .said{font-size:14px}
+
+/* Story scenes: whole panel always on screen, caption below */
+.cine{position:fixed;inset:0;z-index:30;background:#000;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:calc(var(--safe-t) + 12px) 16px calc(var(--safe-b) + 16px)}
+.cine-frame{position:relative;width:min(100%,calc((100vh - 240px)*2.36),1280px);aspect-ratio:2.36;overflow:hidden;background:#0b0616;flex:none}
+.cine-img{position:absolute;inset:0;background-size:cover;background-position:center;animation:kb 9s ease-out forwards}
+.cine-img.alt{animation-name:kb2}
+.cine-img.dim{filter:brightness(.35) saturate(1.1)}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.05)}}
+@keyframes kb2{from{transform:scale(1.05)}to{transform:scale(1)}}
+.cine-face{position:absolute;left:50%;top:50%;width:38%;max-width:220px;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid var(--c,var(--gold));box-shadow:0 0 40px rgba(0,0,0,.7);object-fit:cover}
+.cine-ph{position:absolute;inset:0;display:grid;place-items:center;padding-inline:16px;text-align:center;font-family:var(--shade);font-size:clamp(24px,5vw,56px);line-height:1;color:var(--gold);text-wrap:balance}
+.cine-fade{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .4s;pointer-events:none}
+.cine-fade.on{opacity:1}
+.cine-low{width:min(100%,720px);display:grid;gap:10px;justify-items:center;text-align:center}
+.cine-ch{margin:0;font-family:var(--display);font-size:12px;letter-spacing:.18em;color:var(--magenta)}
+.cine-cap{margin:0;max-width:56ch;min-height:3em;font-size:clamp(16px,2.4vw,21px);line-height:1.45;color:var(--ink)}
+.cine-ctrl{display:flex;gap:10px;align-items:center;margin-top:4px}
+.cine-count{font-family:var(--display);font-size:11px;letter-spacing:.1em;color:var(--dim);min-width:4em}
+.cbtn{font-family:var(--display);font-size:12px;letter-spacing:.08em;color:var(--ink);background:transparent;border:1px solid var(--line);padding:8px 14px;cursor:pointer}
+.cbtn.next{color:var(--night);background:var(--gold);border-color:var(--gold)}
+
+/* Screens */
+.screen{position:fixed;inset:0;z-index:30;overflow:auto;display:flex;align-items:flex-start;padding:calc(var(--safe-t) + 28px) 16px calc(var(--safe-b) + 28px);background:linear-gradient(90deg,rgba(20,11,38,.94) 0%,rgba(20,11,38,.62) 55%,rgba(20,11,38,.12) 100%);-webkit-user-select:text;user-select:text}
+@media (min-width:900px){.screen{padding-left:7vw;align-items:center}}
+.marquee{position:relative;width:min(540px,100%);margin:10px;padding:30px 28px 26px;background:rgba(13,6,27,.92);display:grid;gap:16px}
+.marquee::before{content:"";position:absolute;inset:-11px;padding:11px;pointer-events:none;
+  background:radial-gradient(circle at center,var(--gold) 0 2.6px,rgba(255,194,61,.18) 3.6px,transparent 5px) 0 0/16px 16px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  animation:chase 1.1s linear infinite}
+@keyframes chase{to{background-position:16px 16px}}
+.app{position:relative;width:min(460px,100%);margin:10px;padding:22px 22px 24px;background:#0d0a14;border:1px solid rgba(255,176,46,.4);border-top:6px solid var(--amber);display:grid;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.app.under{border-color:rgba(63,240,255,.4);border-top-color:var(--cyan)}
+.apphead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.appname{font-family:var(--display);font-size:14px;letter-spacing:.08em;color:var(--amber)}
+.app.under .appname{color:var(--cyan)}
+.appclock{font-family:var(--display);font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+.apptitle{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(24px,5vw,32px);line-height:1.05}
+.eyebrow{margin:0;font-family:var(--display);font-size:12px;letter-spacing:.16em;color:var(--magenta)}
+.logo{margin:0;font-family:var(--shade);font-weight:400;font-size:clamp(54px,13vw,98px);line-height:.88;color:var(--gold);text-shadow:0 0 22px rgba(255,46,136,.45);text-wrap:balance}
+.logo.small{font-size:clamp(36px,8.5vw,60px)}
+.tag{margin:0;font-style:italic;font-size:17px;line-height:1.4;color:var(--dim);max-width:42ch}
+.btnrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.cta{justify-self:start;font-family:var(--display);font-size:18px;letter-spacing:.04em;color:var(--night);background:var(--magenta);border:2px solid var(--gold);padding:13px 22px;cursor:pointer;box-shadow:4px 4px 0 var(--gold);transition:transform .1s,box-shadow .1s}
+.cta:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--gold)}
+.cta:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--gold)}
+.cta.amber{background:var(--amber);border-color:#0d0a14;box-shadow:4px 4px 0 rgba(255,176,46,.35)}
+.app.under .cta.amber{background:var(--cyan);box-shadow:4px 4px 0 rgba(63,240,255,.3)}
+.ghost{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--gold);background:transparent;border:2px solid var(--line);padding:11px 16px;cursor:pointer}
+.ghost:hover{border-color:var(--gold)}
+.missions{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.mission{width:100%;display:grid;grid-template-columns:2.4em minmax(0,1fr) auto;gap:10px;align-items:baseline;text-align:left;font:inherit;color:var(--ink);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);padding:9px 12px;cursor:pointer}
+.mission:hover:not(:disabled){border-color:var(--gold)}
+.mission:disabled{opacity:.4;cursor:default}
+.mission .mn{font-family:var(--display);color:var(--magenta);font-variant-numeric:tabular-nums}
+.mission .mt{font-family:var(--display);font-size:14px}
+.mission .ms{display:block;font-family:var(--body);font-size:12px;color:var(--dim);margin-top:2px}
+.mission .mb{font-family:var(--display);font-size:12px;color:var(--gold);font-variant-numeric:tabular-nums}
+.contracts{margin:0;padding:0;border:0;display:grid;gap:8px}
+.contracts legend{padding:0;margin-bottom:8px;font-family:var(--display);font-size:12px;letter-spacing:.14em;color:var(--dim)}
+.contract{display:block;cursor:pointer}
+.contract input{position:absolute;opacity:0;pointer-events:none}
+.ccard{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03)}
+.ccard b{font-family:var(--display);font-weight:400;font-size:15px}
+.ccard .cpay{font-family:var(--display);color:var(--gold);font-variant-numeric:tabular-nums;text-align:right}
+.ccard .crisk{grid-column:1 / -1;font-size:13px;color:var(--dim)}
+.ccard .cbounty{grid-column:1 / -1;font-family:var(--display);font-size:10px;letter-spacing:.12em;color:var(--danger)}
+.contract input:checked + .ccard{border-color:var(--amber);background:rgba(255,176,46,.1);box-shadow:inset 3px 0 0 var(--amber)}
+.objectives{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.objectives li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;align-items:center;font-size:15px;line-height:1.35}
+.objectives .ico{width:34px;height:34px;display:grid;place-items:center;font-family:var(--display);font-size:14px;border:2px solid currentColor}
+.objectives .gold{color:var(--gold)}
+.objectives .red{color:var(--danger)}
+.objectives .cyan{color:var(--cyan)}
+.objectives .mag{color:var(--magenta)}
+.objectives .orange{color:#ff9a1f}
+.tipsrow{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--dim)}
+.tipsrow input{width:18px;height:18px;accent-color:var(--amber)}
+.stats{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}
+.stats div{min-width:0;border-top:1px solid var(--line);padding-top:6px}
+.stats dt{font-family:var(--display);font-size:10px;letter-spacing:.14em;color:var(--dim)}
+.stats dd{margin:2px 0 0;font-family:var(--display);font-size:20px;color:var(--gold);font-variant-numeric:tabular-nums}
+.note{margin:0;font-size:14px;line-height:1.45;color:var(--dim)}
+.best{margin:0;font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--cyan)}
+.fine{margin:0;font-size:12px;letter-spacing:.06em;color:var(--dim);opacity:.8}
+.credits{display:grid;gap:6px}
+.credits p{margin:0;font-size:15px;color:var(--dim)}
+.credits b{display:block;font-family:var(--display);font-weight:400;font-size:12px;letter-spacing:.14em;color:var(--magenta)}
+@keyframes blink{50%{opacity:.35}}
+@media (max-width:640px){ #comms{bottom:calc(var(--safe-b) + 96px)} }
+@media (prefers-reduced-motion:reduce){
+  .marquee::before,.oddshint.ready,.shield i.low,.cine-img,.tiphint{animation:none}
+  .pop{animation-duration:1.4s}
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="game" aria-label="House Rules game view"></canvas>
+
+<div class="hud" id="hud" hidden>
+  <div class="hud-tl">
+    <div class="shield"><i id="shieldFill"></i></div>
+    <div class="hits"><b id="hits">000</b><span>Hits</span></div>
+    <div class="missiles" id="missiles" hidden></div>
+  </div>
+  <div class="hud-tr">
+    <div class="lbl">Pay</div>
+    <div class="pay" id="pay">$0</div>
+    <div class="bounty"><span>Bounty</span><span id="bounty">$0</span><span class="pips"><i id="pip1"></i><i id="pip2"></i><i id="pip3"></i></span></div>
+    <div class="obj" id="obj">Drops 0 / 4</div>
+    <div class="hudbtns">
+      <button class="mini" id="pauseBtn" type="button">Pause</button>
+      <button class="mini" id="muteBtn" type="button">Sound on</button>
+    </div>
+  </div>
+  <div class="status" id="status" hidden>Signal masked · in the sky lane</div>
+  <div class="bossbar" id="bossbar" hidden>
+    <div class="lbl" id="bossName">Boss</div>
+    <div class="track"><i id="bossFill"></i></div>
+  </div>
+  <div class="effects" id="effects"></div>
+  <div class="hud-bc">
+    <div class="oddshead"><span class="lbl">Your odds</span><span class="pct" id="luckPct">0%</span><span class="oddshint" id="oddsHint">Need 25% to bet</span></div>
+    <div class="luck" id="luckBar"><i id="luckFill"></i><span class="minbet" aria-hidden="true"></span></div>
+    <div class="boost" aria-label="Boost"><i id="boostFill"></i></div>
+  </div>
+</div>
+
+<div id="comms" hidden>
+  <img class="portrait" id="commImg" alt="">
+  <div class="commbody"><div class="who" id="commWho"></div><div class="said" id="commText"></div><div class="sub" id="commSub"></div></div>
+</div>
+<div id="popups" aria-live="polite"></div>
+<div id="reels" hidden>
+  <div class="reelrow"><div class="reel" id="r0">7</div><div class="reel" id="r1">7</div><div class="reel" id="r2">7</div></div>
+  <div id="reelLabel"></div>
+</div>
+<div id="flash"></div>
+<div id="dropmark" hidden><b id="dropText">DROP 1 · 600m</b><i></i></div>
+<div class="tip" id="tip" hidden>
+  <div class="tipcard" role="dialog" aria-labelledby="tipTitle">
+    <p class="tipstep" id="tipStep">How to play</p>
+    <h2 id="tipTitle"></h2>
+    <div class="tipbody" id="tipBody"></div>
+    <p class="tiphint" id="tipHint">Tap anywhere to keep flying</p>
+  </div>
+</div>
+
+<div id="touch" hidden>
+  <div class="stick" id="stick"><div class="knob" id="knob"></div></div>
+  <div class="tbtns" id="tbtns">
+    <button class="tb bet" id="tBet" type="button" hidden>Bet</button>
+    <button class="tb rollb" id="tRoll" type="button">Roll</button>
+    <button class="tb missb" id="tMissile" type="button" hidden>Missile</button>
+    <button class="tb boostb" id="tBoost" type="button">Boost</button>
+    <button class="tb fire" id="tFire" type="button">Fire</button>
+  </div>
+</div>
+
+<section class="screen" id="title">
+  <div class="marquee">
+    <p class="eyebrow">A neon Las Vegas rail shooter</p>
+    <h1 class="logo">House<br>Rules</h1>
+    <p class="tag">Las Vegas, after the Singularity. A company called the House bought every casino, and every life is a line on its odds board. Deuce just wants his little brother home.</p>
+    <div class="btnrow">
+      <button class="cta" id="continueBtn" type="button">New game</button>
+      <button class="ghost" id="prologueBtn" type="button">Watch the prologue</button>
+    </div>
+    <ol class="missions" id="missionList"></ol>
+    <p class="fine">Desktop: arrows or WASD to steer, Space to shoot, Shift to boost, double-tap a direction or Q / E to roll, R to bet, B for missiles. Progress saves on this device.</p>
+  </div>
+</section>
+
+<section class="cine" id="cine" hidden aria-label="Story">
+  <div class="cine-frame">
+    <div class="cine-img" id="cineImg"></div>
+    <img class="cine-face" id="cineFace" alt="" hidden>
+    <div class="cine-ph" id="cinePh" hidden></div>
+    <div class="cine-fade" id="cineFade"></div>
+  </div>
+  <div class="cine-low">
+    <p class="cine-ch" id="cineCh"></p>
+    <p class="cine-cap" id="cineCap"></p>
+    <div class="cine-ctrl">
+      <span class="cine-count" id="cineCount">1 / 8</span>
+      <button class="cbtn" id="cineSkip" type="button">Skip</button>
+      <button class="cbtn next" id="cineNext" type="button">Next</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="jobs" hidden>
+  <div class="app">
+    <div class="apphead"><span class="appname">DROPRUN · Driver</span><span class="appclock">2:14 AM · Day 2</span></div>
+    <h1 class="apptitle">Next pickup</h1>
+    <p class="note">Halfway through the shift. Trey still isn't answering. Pick your cargo, keep your head down, get paid.</p>
+    <fieldset class="contracts">
+      <legend>Four drops per job</legend>
+      <label class="contract"><input type="radio" name="contract" value="0" checked><span class="ccard"><b>Groceries</b><span class="cpay">$480</span><span class="crisk">Low value. Only scavenger drones bother you.</span><span class="cbounty">Bounty level 1</span></span></label>
+      <label class="contract"><input type="radio" name="contract" value="1"><span class="ccard"><b>Medical cooler</b><span class="cpay">$1,200</span><span class="crisk">Worth stealing. Security crews show up.</span><span class="cbounty">Bounty level 2</span></span></label>
+      <label class="contract"><input type="radio" name="contract" value="2"><span class="ccard"><b>Sealed case</b><span class="cpay">$3,200</span><span class="crisk">Nobody tells you what's inside. Every crew in the city wants it.</span><span class="cbounty">Bounty level 3</span></span></label>
+    </fieldset>
+    <div class="btnrow">
+      <button class="cta amber" id="acceptBtn" type="button">Take the cargo</button>
+      <button class="ghost" id="jobsBack" type="button">Back</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="brief" hidden>
+  <div class="app" id="briefCard">
+    <div class="apphead"><span class="appname" id="briefApp">DROPRUN · Route</span><span class="appclock" id="briefSub">Chapter 1 · Mission 01</span></div>
+    <h1 class="apptitle" id="briefTitle">Tonight's run</h1>
+    <ul class="objectives" id="briefList"></ul>
+    <label class="tipsrow" for="tipsOn"><input type="checkbox" id="tipsOn" checked> Show tips as I fly (game pauses to explain)</label>
+    <div class="btnrow">
+      <button class="cta amber" id="liftBtn" type="button">Lift off</button>
+      <button class="ghost" id="briefBack" type="button">Back</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="paused" hidden>
+  <div class="marquee">
+    <p class="eyebrow">Paused</p>
+    <h1 class="logo small">On break</h1>
+    <div class="btnrow">
+      <button class="cta" id="resumeBtn" type="button">Resume</button>
+      <button class="ghost" id="quitBtn" type="button">Quit to title</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="over" hidden>
+  <div class="marquee">
+    <p class="eyebrow" id="overEyebrow">Mission failed</p>
+    <h1 class="logo small" id="overTitle">Cargo lost</h1>
+    <p class="tag" id="overLine"></p>
+    <dl class="stats">
+      <div><dt>Pay</dt><dd id="stPay">$0</dd></div>
+      <div><dt id="stObjLbl">Drops</dt><dd id="stObj">0 / 4</dd></div>
+      <div><dt>Hits</dt><dd id="stHits">0</dd></div>
+      <div><dt>Close calls</dt><dd id="stClose">0</dd></div>
+      <div><dt>Bets on yourself</dt><dd id="stBets">0</dd></div>
+      <div><dt>Peak bounty</dt><dd id="stBounty">$0</dd></div>
+    </dl>
+    <p class="best" id="overBest"></p>
+    <div class="btnrow">
+      <button class="cta" id="overMain" type="button">Continue</button>
+      <button class="ghost" id="overAlt" type="button">Retry</button>
+      <button class="ghost" id="overTitleBtn" type="button">Title</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="credits" hidden>
+  <div class="marquee">
+    <p class="eyebrow">The end</p>
+    <h1 class="logo small">House Rules</h1>
+    <div class="credits">
+      <p><b>Created by</b>Miles Low</p>
+      <p><b>A production of</b>The Do Better Network</p>
+      <p><b>Starring</b>Deuce, Trey and Jamie</p>
+    </div>
+    <p class="tag">The House always has another table. Thanks for playing.</p>
+    <button class="cta" id="creditsBtn" type="button">Back to title</button>
+  </div>
+</section>
+
+<script>window.ART={"skyRatio": 0.3661616161616162, "skyline": "assets/skyline.jpg", "panels": ["assets/panels/panel-1.jpg", "assets/panels/panel-2.jpg", "assets/panels/panel-3.jpg", "assets/panels/panel-4.jpg", "assets/panels/panel-5.jpg", "assets/panels/panel-6.jpg", "assets/panels/panel-7.jpg", "assets/panels/panel-8.jpg"], "portraits": {"deuce": "assets/portraits/deuce.jpg", "jamie": "assets/portraits/jamie.jpg", "hunter": "assets/portraits/hunter.jpg", "trey": "assets/portraits/trey.jpg"}, "models": {"truck": "assets/models/truck.glb", "drone": "assets/models/drone.glb"}};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+(async function(){
+const $ = s => document.querySelector(s);
+const rand = (a,b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const fmt = n => Math.floor(n).toLocaleString('en-US');
+const money = n => '$' + fmt(n);
+const ART = window.ART || {};
+const show = (id, on) => { $(id).hidden = !on; };
+const setT = (el, t) => { if(el.textContent !== t) el.textContent = t; };
+
+if(!window.THREE){
+  $('#continueBtn').disabled = true;
+  $('#continueBtn').textContent = '3D engine failed to load · refresh';
+  return;
+}
+try { await document.fonts.load('64px Bungee'); } catch(e) {}
+
+/* ================= Renderer ================= */
+const canvas = $('#game');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
+const hasBloom = !!(THREE.EffectComposer && THREE.UnrealBloomPass && THREE.RenderPass);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, hasBloom ? 1.5 : 2));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x170c2c);
+scene.fog = new THREE.Fog(0x170c2c, 70, 300);
+const camera = new THREE.PerspectiveCamera(66, 1, 0.1, 650);
+camera.position.set(0, 5, 10);
+let composer = null;
+if(hasBloom){
+  composer = new THREE.EffectComposer(renderer);
+  composer.addPass(new THREE.RenderPass(scene, camera));
+  composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(512, 512), .8, .45, .72));
+}
+let baseFov = 66;
+function resize(){
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  if(composer) composer.setSize(w, h);
+  camera.aspect = w/h; baseFov = w < h ? 82 : 66; camera.fov = baseFov; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+scene.add(new THREE.HemisphereLight(0x9a7cff, 0x2a0a20, 0.95));
+const sun = new THREE.DirectionalLight(0xffc46b, 0.55); sun.position.set(-6, 12, 6); scene.add(sun);
+
+const COL = {magenta:0xff2e88, gold:0xffc23d, cyan:0x3ff0ff, violet:0x9b5cff, orange:0xff7a2e, pink:0xff5fd2, red:0xff3b3b, blue:0x3b7bff, amber:0xffb02e, white:0xfff4e0, teal:0x2fd6c8};
+// Colour language: world = cool; threats = red/orange; drops and cash = gold/green; you = cyan
+const PALETTES = {
+  city:[0x3b7bff, 0x6a4cff, 0x2fd6c8, 0x9b5cff, 0x4aa8ff],
+  sim:[0xffe3a0, 0xfff4e0, 0xffd27a, 0xffb8d8, 0xfff0c0],
+};
+const unitBox = new THREE.BoxGeometry(1,1,1);
+const basic = {};
+const basicMat = c => basic[c] || (basic[c] = new THREE.MeshBasicMaterial({color:c}));
+function canvasTex(w, h, draw){ const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); }
+
+/* ================= Worlds ================= */
+const GROUND = -46;
+let ENV = 'city';
+const worldCity = new THREE.Group(), worldTunnel = new THREE.Group(), worldServers = new THREE.Group();
+scene.add(worldCity, worldTunnel, worldServers);
+
+// --- City: skyline, glowing grid far below, towers, street and sky traffic
+let skyline = null;
+if(ART.skyline){
+  const skyTex = new THREE.TextureLoader().load(ART.skyline);
+  skyline = new THREE.Mesh(new THREE.PlaneGeometry(1040, 1040*(ART.skyRatio || 0.363)), new THREE.MeshBasicMaterial({map:skyTex, color:0x8a82ad, fog:false, depthWrite:false}));
+  skyline.position.set(0, 80, -400); worldCity.add(skyline);
+}
+const groundTex = canvasTex(256, 256, (g,w,h) => {
+  g.fillStyle = '#0c0718'; g.fillRect(0,0,w,h);
+  for(let i=0;i<500;i++){ g.globalAlpha = rand(.15, .7); g.fillStyle = pick(['#9fb8ff','#8ff3ff','#c9d6ff','#b59cff']); g.fillRect(rand(0,w), rand(0,h), rand(1,2.5), rand(1,2.5)); }
+  g.globalAlpha = .4; g.fillStyle = '#3b7bff'; for(let x=0;x<w;x+=64) g.fillRect(x, 0, 2, h); g.globalAlpha = 1;
+});
+groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping; groundTex.repeat.set(4, 8);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 560), new THREE.MeshBasicMaterial({map:groundTex}));
+ground.rotation.x = -Math.PI/2; ground.position.set(0, GROUND, -220); worldCity.add(ground);
+const winTexes = [0,1,2,3,4,5].map(() => canvasTex(128, 128, (g) => {
+  g.fillStyle = '#000'; g.fillRect(0,0,128,128);
+  const cols = ['#9fb8ff','#c9d6ff','#8ff3ff','#b59cff'], tint = pick(cols);
+  for(let y=0;y<8;y++) for(let x=0;x<4;x++){ if(Math.random() < .45){ g.globalAlpha = rand(.35, 1); g.fillStyle = Math.random() < .8 ? tint : pick(cols); g.fillRect(x*32+8, y*16+4, 16, 9); } }
+  g.globalAlpha = 1;
+}));
+function towerMat(){
+  const tex = pick(winTexes).clone(); tex.needsUpdate = true; tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return {tex, mat:new THREE.MeshLambertMaterial({color:0x151028, emissive:ENV === 'sim' ? 0xffc46b : 0xffffff, emissiveMap:tex, emissiveIntensity:.6})};
+}
+const COLS = [-54, -36, -18, 0, 18, 36, 54], ROW = 18, ROWS = 14, CITY_SPAN = ROW*ROWS;
+const buildings = [], blinkers = [];
+function makeBuilding(col){
+  const b = new THREE.Group();
+  const {tex, mat} = towerMat();
+  const main = new THREE.Mesh(unitBox, mat), top = new THREE.Mesh(unitBox, mat);
+  const band = new THREE.Mesh(unitBox, basicMat(COL.blue)), sign = new THREE.Mesh(unitBox, basicMat(COL.blue));
+  const crown = new THREE.Mesh(unitBox, basicMat(COL.blue)), mast = new THREE.Mesh(unitBox, basicMat(0x3a2f55));
+  const light = new THREE.Mesh(new THREE.SphereGeometry(.45, 8, 6), basicMat(0xdfe6ff));
+  b.add(main, top, band, sign, crown, mast, light);
+  b.userData = {col, tex, mat, main, top, band, sign, crown, mast, light};
+  blinkers.push(light);
+  return b;
+}
+function randomizeBuilding(b){
+  const u = b.userData, ax = Math.abs(u.col), pal = PALETTES[ENV === 'sim' ? 'sim' : 'city'];
+  u.mat.emissive.setHex(ENV === 'sim' ? 0xffc46b : 0xffffff);
+  const maxTop = ax <= 18 ? -12 : ax <= 36 ? 18 : 34, minH = ax <= 18 ? 10 : 22;
+  const h = rand(minH, maxTop - GROUND), w = rand(8, 14), d = rand(8, 14);
+  b.position.x = u.col + rand(-1.5, 1.5);
+  u.main.scale.set(w, h, d); u.main.position.set(0, GROUND + h/2, 0);
+  u.tex.repeat.set(Math.max(1, Math.round(w/6)), Math.max(2, Math.round(h/8)));
+  let roof = GROUND + h;
+  const setback = Math.random() < .55; u.top.visible = setback;
+  if(setback){ const th = rand(4, 14); u.top.scale.set(w*.62, th, d*.62); u.top.position.set(0, roof + th/2, 0); roof += th; }
+  u.band.visible = Math.random() < .6; u.band.scale.set(w + .3, .45, d + .3); u.band.position.set(0, GROUND + h*rand(.55, .95), 0); u.band.material = basicMat(pick(pal));
+  const sh = Math.min(h*.5, rand(6, 16));
+  u.sign.scale.set(.4, sh, rand(1.2, 2.4)); u.sign.position.set((u.col > 0 ? -1 : 1)*(w/2 + .25), GROUND + h - sh/2 - rand(1, 6), rand(-d/4, d/4));
+  u.sign.material = basicMat(pick(pal)); u.sign.visible = u.col !== 0;
+  u.crown.visible = Math.random() < .5; u.crown.scale.set((setback ? w*.62 : w)*.9, .8, (setback ? d*.62 : d)*.9); u.crown.position.set(0, roof + .4, 0); u.crown.material = basicMat(pick(pal));
+  const hasMast = Math.random() < .5; u.mast.visible = u.light.visible = hasMast;
+  const mh = rand(3, 8); u.mast.scale.set(.3, mh, .3); u.mast.position.set(0, roof + mh/2, 0); u.light.position.set(0, roof + mh, 0);
+  b.visible = true;
+}
+for(const col of COLS) for(let i=0;i<ROWS;i++){
+  const b = makeBuilding(col); randomizeBuilding(b);
+  b.position.z = 24 - i*ROW - (Math.abs(col) % 36 ? ROW/2 : 0);
+  worldCity.add(b); buildings.push(b);
+}
+const streetCars = [];
+const streetGeo = new THREE.BoxGeometry(.7, .35, 2.6);
+for(const sx of [-45, -27, -9, 9, 27, 45]) for(let i=0;i<7;i++){
+  const away = i % 2 === 0;
+  const m = new THREE.Mesh(streetGeo, basicMat(away ? COL.red : COL.white));
+  m.position.set(sx + (away ? -1.6 : 1.6), GROUND + .5, rand(-260, 20));
+  worldCity.add(m); streetCars.push({m, v:away ? -rand(14, 24) : rand(14, 24)});
+}
+const skyCars = [];
+for(let i=0;i<22;i++){
+  const side = i % 2 ? 1 : -1;
+  const m = new THREE.Mesh(new THREE.BoxGeometry(1.4, .5, 3), basicMat(pick([0xc9d6ff, 0x4aa8ff, 0x6a4cff])));
+  m.position.set(side*rand(22, 70), rand(-14, 14), rand(-260, 20));
+  worldCity.add(m); skyCars.push({m, v:rand(-30, 30)});
+}
+// Winners Dome, only in the finale
+const domeTex = canvasTex(256, 128, (g,w,h) => {
+  g.fillStyle = '#06142a'; g.fillRect(0,0,w,h);
+  g.strokeStyle = '#3ff0ff'; g.lineWidth = 2;
+  for(let x=0;x<w;x+=16){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,h); g.stroke(); }
+  for(let y=0;y<h;y+=12){ g.beginPath(); g.moveTo(0,y); g.lineTo(w,y); g.stroke(); }
+  g.fillStyle = '#ff2e88'; g.fillRect(0, h*.48, w, 6);
+});
+const dome = new THREE.Mesh(new THREE.SphereGeometry(70, 48, 24, 0, Math.PI*2, 0, Math.PI*.55), new THREE.MeshBasicMaterial({map:domeTex, transparent:true, opacity:.85, fog:false}));
+dome.position.set(0, -10, -360); dome.visible = false; scene.add(dome);
+
+// --- Tunnel: the undercity
+const concrete = new THREE.MeshLambertMaterial({color:0x2a2436, emissive:0x0c0914});
+const TSEG = 16, TCOUNT = 16, tunnelSegs = [];
+for(let i=0;i<TCOUNT;i++){
+  const s = new THREE.Group();
+  const floor = new THREE.Mesh(unitBox, concrete); floor.scale.set(30, 1, TSEG); floor.position.y = -3.5; s.add(floor);
+  const ceil = new THREE.Mesh(unitBox, concrete); ceil.scale.set(30, 1, TSEG); ceil.position.y = 12.5; s.add(ceil);
+  for(const side of [-1, 1]){
+    const wall = new THREE.Mesh(unitBox, concrete); wall.scale.set(1, 17, TSEG); wall.position.set(side*14.5, 4.5, 0); s.add(wall);
+    const strip = new THREE.Mesh(unitBox, basicMat(i % 2 ? COL.blue : 0x6a4cff)); strip.scale.set(.2, .25, TSEG*.8); strip.position.set(side*13.9, 10.5, 0); s.add(strip);
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, TSEG, 8), concrete); pipe.rotation.x = Math.PI/2; pipe.position.set(side*13.2, rand(0, 6), 0); s.add(pipe);
+  }
+  const rib = new THREE.Mesh(unitBox, basicMat(0x2fd6c8)); rib.scale.set(28, .2, .2); rib.position.set(0, 12, -TSEG/2 + .2); s.add(rib);
+  const floorLine = new THREE.Mesh(unitBox, basicMat(0x3b7bff)); floorLine.scale.set(.25, .05, TSEG*.6); floorLine.position.set(0, -2.95, 0); s.add(floorLine);
+  s.position.z = 20 - i*TSEG; worldTunnel.add(s); tunnelSegs.push(s);
+}
+// --- Server farm: racks of trapped winners
+const rackTex = canvasTex(64, 128, (g) => {
+  g.fillStyle = '#000'; g.fillRect(0,0,64,128);
+  for(let y=4;y<128;y+=8) for(let x=4;x<64;x+=10){ if(Math.random() < .55){ g.fillStyle = pick(['#2fd6c8','#3ff0ff','#7dff8a','#3b7bff']); g.globalAlpha = rand(.4,1); g.fillRect(x, y, 5, 3); } }
+  g.globalAlpha = 1;
+});
+rackTex.wrapS = rackTex.wrapT = THREE.RepeatWrapping;
+const racks = [];
+const RSEG = 14, RCOUNT = 18;
+for(let i=0;i<RCOUNT;i++) for(const side of [-1, 1]) for(const lane of [0, 1, 2]){
+  const tex = rackTex.clone(); tex.needsUpdate = true; tex.repeat.set(2, 4);
+  const m = new THREE.Mesh(unitBox, new THREE.MeshLambertMaterial({color:0x0a1418, emissive:0xffffff, emissiveMap:tex, emissiveIntensity:.7}));
+  const h = lane === 0 ? 18 : lane === 1 ? 24 : 30;
+  m.scale.set(5, h, RSEG - 2); m.position.set(side*(15 + lane*9), -3 + h/2, 20 - i*RSEG);
+  worldServers.add(m); racks.push(m);
+}
+const serverFloor = new THREE.Mesh(new THREE.PlaneGeometry(120, 300), new THREE.MeshBasicMaterial({map:canvasTex(64, 64, (g) => { g.fillStyle = '#031014'; g.fillRect(0,0,64,64); g.strokeStyle = '#1a6f8a'; g.strokeRect(0,0,64,64); }), color:0xffffff}));
+serverFloor.material.map.wrapS = serverFloor.material.map.wrapT = THREE.RepeatWrapping; serverFloor.material.map.repeat.set(20, 50);
+serverFloor.rotation.x = -Math.PI/2; serverFloor.position.set(0, -3, -130); worldServers.add(serverFloor);
+
+function setEnv(env){
+  ENV = env;
+  const cityLike = env === 'city' || env === 'sim' || env === 'dome' || env === 'collapse';
+  worldCity.visible = cityLike; worldTunnel.visible = env === 'tunnel'; worldServers.visible = env === 'servers';
+  dome.visible = env === 'dome'; dome.position.z = -360;
+  const look = {
+    city:[0x170c2c, 70, 300, 0x8a82ad], dome:[0x170c2c, 70, 300, 0x9a92bd],
+    sim:[0x2a1630, 60, 280, 0xffcf8a], collapse:[0x2a0c18, 50, 240, 0xff8a7a],
+    tunnel:[0x07040d, 12, 150, 0], servers:[0x03100f, 20, 190, 0],
+  }[env];
+  scene.background.setHex(look[0]); scene.fog.color.setHex(look[0]); scene.fog.near = look[1]; scene.fog.far = look[2];
+  if(skyline) skyline.material.color.setHex(look[3] || 0x8a82ad);
+  if(cityLike) for(const b of buildings) randomizeBuilding(b);
+}
+const floorY = () => (ENV === 'tunnel' || ENV === 'servers') ? -3 : GROUND;
+const hasTraffic = () => ENV === 'city' || ENV === 'dome' || ENV === 'sim';
+
+/* ================= Ships ================= */
+const ship = new THREE.Group(); scene.add(ship);
+const truckRig = new THREE.Group(), wildRig = new THREE.Group();
+ship.add(truckRig, wildRig);
+const glowConeMat = new THREE.MeshBasicMaterial({color:COL.cyan, transparent:true, opacity:.45, blending:THREE.AdditiveBlending, depthWrite:false});
+function addFlame(rig, z, y){
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(.22, 1.2, 8), new THREE.MeshBasicMaterial({color:COL.cyan, transparent:true, opacity:.7, blending:THREE.AdditiveBlending, depthWrite:false}));
+  flame.rotation.x = -Math.PI/2; flame.position.set(0, y, z); rig.add(flame); rig.userData.flame = flame;
+}
+{ // Deuce's delivery truck (simple shapes until the 3D model loads)
+  const paint = new THREE.MeshLambertMaterial({color:0xe8e3d8, emissive:0x1e1b15});
+  const dark = new THREE.MeshLambertMaterial({color:0x3a3640, emissive:0x0a080e});
+  const box = new THREE.Mesh(unitBox, paint); box.scale.set(1.9, 1.2, 2.5); box.position.set(0, .38, .45); truckRig.add(box);
+  const stripe = new THREE.Mesh(unitBox, basicMat(COL.amber)); stripe.scale.set(1.93, .18, 2.53); stripe.position.set(0, .22, .45); truckRig.add(stripe);
+  const cab = new THREE.Mesh(unitBox, paint); cab.scale.set(1.7, .85, 1.1); cab.position.set(0, .1, -1.3); truckRig.add(cab);
+  const glass = new THREE.Mesh(unitBox, basicMat(COL.cyan)); glass.scale.set(1.4, .34, .06); glass.position.set(0, .3, -1.86); glass.rotation.x = -.3; truckRig.add(glass);
+  for(const s of [-1, 1]) for(const z of [-1.55, 1.15]){
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(.32, .32, .26, 14), dark); ring.position.set(s*.86, -.45, z); truckRig.add(ring);
+    const jet = new THREE.Mesh(new THREE.ConeGeometry(.24, .9, 10, 1, true), glowConeMat); jet.rotation.x = Math.PI; jet.position.set(s*.86, -1.05, z); truckRig.add(jet);
+  }
+  addFlame(truckRig, 2.3, -.3);
+}
+{ // The Wildcard: Trey's craft. Low silver hover car, four cyan pods, magenta stripe
+  const silver = new THREE.MeshLambertMaterial({color:0xb8bccb, emissive:0x1c1e26});
+  const dark = new THREE.MeshLambertMaterial({color:0x22202c, emissive:0x08070c});
+  const body = new THREE.Mesh(unitBox, silver); body.scale.set(1.9, .5, 3.4); wildRig.add(body);
+  const nose = new THREE.Mesh(unitBox, silver); nose.scale.set(1.7, .3, 1.0); nose.position.set(0, -.08, -2.1); nose.rotation.x = .18; wildRig.add(nose);
+  const cabin = new THREE.Mesh(unitBox, basicMat(0x1a6f8a)); cabin.scale.set(1.2, .38, 1.3); cabin.position.set(0, .4, -.2); wildRig.add(cabin);
+  const stripe = new THREE.Mesh(unitBox, basicMat(COL.magenta)); stripe.scale.set(.28, .52, 3.45); stripe.position.y = .02; wildRig.add(stripe);
+  const wing = new THREE.Mesh(unitBox, dark); wing.scale.set(2.2, .1, .5); wing.position.set(0, .45, 1.55); wildRig.add(wing);
+  for(const s of [-1, 1]){
+    const strut = new THREE.Mesh(unitBox, dark); strut.scale.set(.08, .35, .1); strut.position.set(s*.8, .3, 1.55); wildRig.add(strut);
+    for(const z of [-1.1, 1.1]){
+      const pod = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, .8, 14), dark); pod.rotation.x = Math.PI/2; pod.position.set(s*1.15, -.12, z); wildRig.add(pod);
+      const glow = new THREE.Mesh(new THREE.CircleGeometry(.28, 14), basicMat(COL.cyan)); glow.position.set(s*1.15, -.12, z + .41); wildRig.add(glow);
+    }
+    const tail = new THREE.Mesh(unitBox, basicMat(COL.red)); tail.scale.set(.4, .1, .04); tail.position.set(s*.6, .05, 1.72); wildRig.add(tail);
+  }
+  addFlame(wildRig, 2.1, 0);
+  wildRig.visible = false;
+}
+let activeRig = truckRig;
+function setShip(kind){ truckRig.visible = kind === 'truck'; wildRig.visible = kind === 'wild'; activeRig = kind === 'wild' ? wildRig : truckRig; }
+
+let droneModel = null;
+function nightReady(root){
+  root.traverse(o => { if(o.isMesh && o.material && o.material.map){ const m = o.material; m.emissive = new THREE.Color(0xffffff); m.emissiveMap = m.map; m.emissiveIntensity = .38; m.needsUpdate = true; } });
+  return root;
+}
+function loadModel(src, cb){
+  if(!THREE.GLTFLoader || !src) return;
+  const L = new THREE.GLTFLoader();
+  if(src.startsWith('data:')){ const s = atob(src.split(',')[1]), u = new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i] = s.charCodeAt(i); L.parse(u.buffer, '', cb); }
+  else L.load(src, cb);
+}
+loadModel((ART.models || {}).truck, gltf => {
+  const truck = nightReady(gltf.scene);
+  truck.scale.setScalar(1.8); truck.rotation.y = -Math.PI/2; truck.position.y = .05;
+  truckRig.children.forEach(c => { if(c !== truckRig.userData.flame && !(c.material && c.material.blending === THREE.AdditiveBlending)) c.visible = false; });
+  truckRig.add(truck);
+});
+loadModel((ART.models || {}).drone, gltf => { droneModel = nightReady(gltf.scene); droneModel.scale.setScalar(1.1); });
+
+const retTex = canvasTex(128, 128, (g) => {
+  g.strokeStyle = '#7dff8a'; g.lineWidth = 7; g.shadowColor = '#7dff8a'; g.shadowBlur = 8;
+  [[12,12,1,1],[116,12,-1,1],[12,116,1,-1],[116,116,-1,-1]].forEach(([x,y,dx,dy]) => { g.beginPath(); g.moveTo(x, y + dy*34); g.lineTo(x, y); g.lineTo(x + dx*34, y); g.stroke(); });
+});
+const retNear = new THREE.Sprite(new THREE.SpriteMaterial({map:retTex, transparent:true, depthTest:false, fog:false, opacity:.85}));
+const retFar = new THREE.Sprite(new THREE.SpriteMaterial({map:retTex, transparent:true, depthTest:false, fog:false, opacity:.55}));
+retNear.scale.set(2.2, 2.2, 1); retFar.scale.set(2.6, 2.6, 1); scene.add(retNear, retFar);
+
+/* ================= Shared assets ================= */
+const geo = {
+  pb: new THREE.BoxGeometry(.13, .13, 1.7), eb: new THREE.SphereGeometry(.34, 8, 6), part: new THREE.BoxGeometry(.3, .3, .3),
+  drone: new THREE.IcosahedronGeometry(.85, 0), skimmer: new THREE.TorusGeometry(.75, .24, 8, 18), mine: new THREE.IcosahedronGeometry(.8, 0),
+  spike: new THREE.ConeGeometry(.18, .7, 6), chip: new THREE.CylinderGeometry(.58, .58, .16, 20), ring: new THREE.TorusGeometry(2.3, .22, 10, 40),
+  missile: new THREE.BoxGeometry(.18, .18, .9),
+};
+const mat = {
+  pb: new THREE.MeshBasicMaterial({color:0x9ff8ff}), eb: new THREE.MeshBasicMaterial({color:0xffd060}),
+  drone: new THREE.MeshLambertMaterial({color:0x7a3040, emissive:0x3a0c18}), skimmer: new THREE.MeshLambertMaterial({color:0x3a1060, emissive:0x6a2ab0}),
+  limo: new THREE.MeshLambertMaterial({color:0x0e0b16, emissive:0x120c1e}), mine: new THREE.MeshLambertMaterial({color:0x5a1010, emissive:0x8a1010}),
+};
+const chipFace = canvasTex(128, 128, (g) => {
+  g.fillStyle = '#2bbf6a'; g.beginPath(); g.arc(64,64,64,0,Math.PI*2); g.fill();
+  g.fillStyle = '#fff'; for(let i=0;i<8;i++){ g.save(); g.translate(64,64); g.rotate(i*Math.PI/4); g.fillRect(-7,-64,14,18); g.restore(); }
+  g.fillStyle = '#ffc23d'; g.beginPath(); g.arc(64,64,30,0,Math.PI*2); g.fill();
+  g.fillStyle = '#140b26'; g.font = 'bold 40px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('$', 64, 67);
+});
+const chipMats = [new THREE.MeshBasicMaterial({color:0xffffff}), new THREE.MeshBasicMaterial({map:chipFace}), new THREE.MeshBasicMaterial({map:chipFace})];
+const BILLS = [['DEUCE  2.4 : 1','WILL HE MAKE IT?'],['BET ON YOURSELF','ODDS LIVE 24/7'],['HAVE YOU SEEN','TREY?'],['WINNERS DOME','TONIGHT ONLY'],['NOBODY','EVER LOSES'],['YOUR ODDS','ARE PUBLIC']];
+const billTexes = BILLS.map((lines, i) => canvasTex(512, 224, (g,w,h) => {
+  const fg = ['#ffc23d','#ff2e88','#3ff0ff'][i%3];
+  g.fillStyle = '#120a22'; g.fillRect(0,0,w,h); g.strokeStyle = fg; g.lineWidth = 8; g.strokeRect(14,14,w-28,h-28);
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = fg; g.shadowColor = fg; g.shadowBlur = 14;
+  g.font = '46px Bungee, Impact, sans-serif'; g.fillText(lines[0], w/2, 82); g.font = '40px Bungee, Impact, sans-serif'; g.fillText(lines[1], w/2, 150);
+}));
+const darkSide = new THREE.MeshLambertMaterial({color:0x1b1131});
+const lockTex = canvasTex(128, 128, (g) => {
+  g.strokeStyle = '#ff2a2a'; g.lineWidth = 10; g.shadowColor = '#ff2a2a'; g.shadowBlur = 10;
+  [[10,10,1,1],[118,10,-1,1],[10,118,1,-1],[118,118,-1,-1]].forEach(([x,y,dx,dy]) => { g.beginPath(); g.moveTo(x, y + dy*36); g.lineTo(x, y); g.lineTo(x + dx*36, y); g.stroke(); });
+  g.fillStyle = '#ff2a2a'; g.beginPath(); g.arc(64, 64, 6, 0, Math.PI*2); g.fill();
+});
+const lockMat = new THREE.SpriteMaterial({map:lockTex, transparent:true, depthTest:false, depthWrite:false, sizeAttenuation:false, fog:false});
+function addLock(m, s){ const sp = new THREE.Sprite(lockMat); sp.scale.set(s, s, 1); sp.renderOrder = 10; m.add(sp); }
+const warnTex = canvasTex(128, 128, (g) => {
+  g.fillStyle = '#ff9a1f'; g.shadowColor = '#ff7a00'; g.shadowBlur = 14;
+  g.beginPath(); g.moveTo(64, 10); g.lineTo(120, 114); g.lineTo(8, 114); g.closePath(); g.fill();
+  g.shadowBlur = 0; g.fillStyle = '#140b26'; g.font = 'bold 66px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('!', 64, 80);
+});
+const warnMat = new THREE.SpriteMaterial({map:warnTex, transparent:true, depthTest:false, depthWrite:false, sizeAttenuation:false, fog:false});
+function addWarn(g, y, x=0){ const sp = new THREE.Sprite(warnMat); sp.scale.set(.075, .075, 1); sp.position.set(x, y, 0); sp.renderOrder = 10; g.add(sp); }
+const haloTex = canvasTex(64, 64, (g) => {
+  const gr = g.createRadialGradient(32, 32, 2, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,245,210,1)'); gr.addColorStop(.35, 'rgba(255,120,30,.9)'); gr.addColorStop(1, 'rgba(255,60,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+});
+const haloMat = new THREE.SpriteMaterial({map:haloTex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, fog:false});
+const missileHalo = new THREE.SpriteMaterial({map:haloTex, color:0xff2e88, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, fog:false});
+const carColors = [0x2b3a66, 0x4a1f3a, 0x23303a, 0x3a3320, 0x1f2a2a, 0x40204a];
+const cardTexes = [['A','♠','#140b26'],['K','♥','#c41e3a'],['Q','♦','#c41e3a']].map(([r, s, c]) => canvasTex(160, 224, (g,w,h) => {
+  g.fillStyle = '#fff8e8'; g.fillRect(0,0,w,h); g.strokeStyle = '#ffc23d'; g.lineWidth = 8; g.strokeRect(6,6,w-12,h-12);
+  g.fillStyle = c; g.font = 'bold 42px Bungee, Impact, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText(r, 16, 14);
+  g.font = '96px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(s, w/2, h/2 + 8);
+}));
+
+/* ================= Portraits ================= */
+const SPEAKERS = {
+  deuce:{name:'DEUCE', c:'#3ff0ff'}, jamie:{name:'JAMIE', c:'#b98cff'}, trey:{name:'TREY', c:'#7dff8a'},
+  dispatch:{name:'DISPATCH', c:'#ffb02e'}, text:{name:'TEXT · DEUCE TO TREY', c:'#f6eefe'},
+  hunter:{name:'THE COLLECTOR', c:'#ff4d5e'}, house:{name:'THE HOUSE', c:'#ffc23d'},
+};
+function drawPortrait(key){
+  const s = SPEAKERS[key];
+  const c = document.createElement('canvas'); c.width = c.height = 144;
+  const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0,0,0,144); bg.addColorStop(0,'#22123f'); bg.addColorStop(1,'#0b0616'); g.fillStyle = bg; g.fillRect(0,0,144,144);
+  g.fillStyle = s.c; g.strokeStyle = s.c; g.textAlign = 'center'; g.textBaseline = 'middle';
+  if(key === 'dispatch'){ g.lineWidth = 8; g.beginPath(); for(let i=0;i<6;i++){ const a = Math.PI/6 + i*Math.PI/3; g.lineTo(72 + Math.cos(a)*40, 72 + Math.sin(a)*40); } g.closePath(); g.stroke(); g.font = '44px Bungee, Impact, sans-serif'; g.fillText('D', 72, 76); }
+  else if(key === 'text'){ g.fillStyle = '#f6eefe'; g.fillRect(26,38,92,56); g.beginPath(); g.moveTo(44,92); g.lineTo(38,112); g.lineTo(64,92); g.fill(); g.fillStyle = '#140b26'; [52,72,92].forEach(x => { g.beginPath(); g.arc(x,66,6,0,Math.PI*2); g.fill(); }); }
+  else if(key === 'house'){ g.shadowColor = s.c; g.shadowBlur = 16; g.beginPath(); g.moveTo(30,92); g.lineTo(24,48); g.lineTo(50,70); g.lineTo(72,36); g.lineTo(94,70); g.lineTo(120,48); g.lineTo(114,92); g.closePath(); g.fill(); g.fillRect(30,98,84,10); }
+  else { g.beginPath(); g.ellipse(72, 150, 52, 46, 0, 0, Math.PI*2); g.fill(); g.beginPath(); g.arc(72, 62, 28, 0, Math.PI*2); g.fill(); }
+  g.shadowBlur = 0; g.strokeStyle = s.c; g.lineWidth = 4; g.strokeRect(2,2,140,140);
+  return c.toDataURL();
+}
+const portraitURL = {};
+for(const k in SPEAKERS) portraitURL[k] = (ART.portraits || {})[k] || drawPortrait(k);
+
+/* ================= Audio ================= */
+let AC = null, master = null, noiseBuf = null, muted = false, musicTimer = null, step = 0, nextT = 0;
+function initAudio(){
+  if(AC){ if(AC.state === 'suspended') AC.resume(); return; }
+  try {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = .22; master.connect(AC.destination);
+    noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+  } catch(e) { AC = null; }
+}
+function tone(f, dur, type='square', vol=.3, slide=0, when){
+  if(!AC || muted) return;
+  const t = when ?? AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f*slide), t+dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t+dur); o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.02);
+}
+function noise(dur, vol=.4, lp=1200, when){
+  if(!AC || muted) return;
+  const t = when ?? AC.currentTime, s = AC.createBufferSource(); s.buffer = noiseBuf;
+  const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp;
+  const g = AC.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t+dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t+dur+.02);
+}
+const now0 = () => AC ? AC.currentTime : 0;
+const sfx = {
+  shoot: () => tone(920, .05, 'square', .05, .5), hit: () => noise(.07, .18, 3200),
+  boom: () => { noise(.5, .45, 700); tone(130, .4, 'sawtooth', .18, .3); },
+  cash: () => { tone(1320, .07, 'triangle', .16); tone(1760, .09, 'triangle', .16, 0, now0()+.06); },
+  drop: () => [784, 988, 1175, 1568].forEach((f,i) => tone(f, .14, 'triangle', .2, 0, now0() + i*.06)),
+  hurt: () => tone(170, .3, 'sawtooth', .3, .5), luck: () => tone(700, .07, 'triangle', .13, 1.6),
+  reel: () => tone(420 + Math.random()*500, .035, 'square', .05), roll: () => noise(.25, .14, 2600),
+  missile: () => { noise(.3, .2, 1800); tone(300, .3, 'sawtooth', .1, 2.2); },
+  ping: () => { tone(1046, .08, 'sine', .18); tone(1568, .12, 'sine', .14, 0, now0()+.09); },
+  page: () => tone(220, .5, 'sine', .08, 1.5),
+  win: () => [523,659,784,1047].forEach((f,i) => tone(f, .2, 'triangle', .22, 0, now0() + i*.09)),
+  lose: () => [392,330,262,196].forEach((f,i) => tone(f, .28, 'sawtooth', .16, 0, now0() + i*.14)),
+};
+// Placeholder beat per world. Swap for Miles Low tracks.
+const BASSLINES = {city:[0,0,12,0, 3,0,12,3, 5,0,12,5, 7,0,10,12], under:[0,0,0,12, 0,0,3,0, 0,0,0,12, 5,0,3,0], sim:[0,7,12,7, 4,7,12,7, 5,9,12,9, 7,11,14,11]};
+let bassline = BASSLINES.city, musicRoot = 55, bpm = 124;
+function playStep(s, t){
+  if(muted) return;
+  if(s % 4 === 0) tone(140, .16, 'sine', .55, .3, t);
+  if(s % 8 === 4) noise(.12, .22, 2400, t);
+  if(s % 2 === 1) noise(.03, .06, 9000, t);
+  if(s % 2 === 0) tone(musicRoot * Math.pow(2, bassline[s%16]/12), .2, 'sawtooth', .12, 0, t);
+}
+function startMusic(){
+  if(!AC || musicTimer) return;
+  nextT = AC.currentTime + .05;
+  musicTimer = setInterval(() => { const spb = 60/bpm/4; while(nextT < AC.currentTime + .12){ playStep(step, nextT); nextT += spb; step = (step+1) % 64; } }, 25);
+}
+function stopMusic(){ clearInterval(musicTimer); musicTimer = null; }
+function toggleMute(){ muted = !muted; $('#muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; }
+
+/* ================= Missions ================= */
+const CONTRACTS = [{name:'Groceries', pay:480, bounty:250}, {name:'Medical cooler', pay:1200, bounty:900}, {name:'Sealed case', pay:3200, bounty:2400}];
+const BOSS = {
+  collector1:{shape:'gunship', color:COL.red, name:'The Collector · bounty hunter', hp:70, retreat:true, speaker:'hunter',
+    p2:"You fly like you used to race. Thought you quit, Deuce.", end:[['hunter', "This isn't over. Your price only goes up from here."]]},
+  collector2:{shape:'gunship', color:COL.red, name:'The Collector · round two', hp:95, retreat:true, speaker:'hunter',
+    p2:"Every crew in Vegas is betting against you tonight.", end:[['hunter', "Fine. Go home. Your brother isn't there."]]},
+  gatekeeper:{shape:'ring', color:COL.orange, name:'The Gatekeeper · undercity door', hp:110, retreat:false, speaker:'house',
+    p2:"Gate integrity falling. Rerouting all defenses.", end:[['jamie', "The door's open. Welcome to the undercity."]]},
+  warden:{shape:'gunship', color:COL.teal, name:'The Warden · server security', hp:120, retreat:false, speaker:'house',
+    p2:"Warden, remove the intruder. The winners must not be disturbed.", end:[['jamie', "Got it. I know which seat is Trey's."]]},
+  dealer:{shape:'cards', color:COL.gold, name:'The Dealer · voice of the House', hp:140, retreat:false, speaker:'house',
+    p2:"You are playing against the House. The House has seen every hand.", end:[['house', "Interesting. A variable."]]},
+  collector3:{shape:'gunship', color:COL.red, name:'The Collector · last stand', hp:100, retreat:true, speaker:'hunter',
+    p2:"I won a jackpot once too, you know. The House owns me now.", end:[['hunter', "You know what? The House never paid me what I was worth either. Go finish it."]]},
+  crown:{shape:'crown', color:COL.gold, name:'THE HOUSE · the crown over the Dome', hp:180, retreat:false, speaker:'house',
+    p2:"The House always wins. The House always wins. The House—", end:[['trey', "It's going dark. Every odds board in the city is going dark!"]]},
+};
+const MISSIONS = [
+  {id:'m1', ch:1, n:'01', name:'The Delivery Run', sub:'Above the Strip · the truck', env:'city', ship:'truck', goal:'drops', contracts:true, music:'city', diff:1,
+   app:'DROPRUN · Route', brief:[['gold','4','<b>Make four drops.</b> Follow the gold DROP marker and fly through each gold ring.'],['red','!','<b>Red brackets are bounty drones.</b> They want your cargo. Shoot them or dodge them.'],['cyan','♥','<b>Keep your shield up.</b> Drones, shots, cars and rooftops all drain it.'],['mag','%','<b>Bonus:</b> close calls raise your odds. Fill them and bet on yourself.']],
+   bosses:['collector1'], winLine:"Jamie found Trey on the city cameras. Whatever she saw, she won't say it over the radio.",
+   after:[]},
+  {id:'m2', ch:1, n:'02', name:'The House Call', sub:'Across the city · the truck', env:'city', ship:'truck', goal:'reach', reachLabel:"To Trey's house", reachTime:73, bounty:1600, music:'city', diff:1.15,
+   app:'DROPRUN · Off route', brief:[['gold','⌂','<b>Get to Trey\'s house.</b> Jamie is waiting with the camera footage.'],['red','!','<b>Your bounty starts high.</b> Expect armored security crews.'],['cyan','↓','<b>Use the sky lane.</b> Fly low to hide when they swarm you.']],
+   bosses:['collector2'], winLine:"You made it to the house. Jamie is in the garage, and she's been crying.",
+   after:[
+    {face:'jamie', ch:"Trey's house", text:"Jamie: \"I pulled the city's camera feeds. This is the casino, two nights ago.\""},
+    {img:5, ch:'The footage', text:"Trey at the table, up big. His phone lights up. It's my text. He reads it. And he keeps playing."},
+    {face:'jamie', ch:'The deal', text:"\"The game was never whether he could win. It was whether he'd walk away when they offered him the deal. He didn't. Security walked him into an elevator that only goes down.\""},
+    {img:4, ch:'Under the city', text:"Under the Strip there's a whole other city. That's where the House keeps the winners who wouldn't stop winning."},
+    {img:3, ch:'The garage', text:"Jamie pulls the tarp off. \"He built this for you. He said you'd need it someday.\" The Wildcard: twin cannons, homing missiles, the fastest engine Trey ever built."},
+    {face:'deuce', ch:'Deuce', text:"I swore I'd never race again. This isn't a race. Let's go get my brother."},
+   ]},
+  {id:'m3', ch:2, n:'03', name:'Going Under', sub:'The undercity tunnels · the Wildcard', env:'tunnel', ship:'wild', goal:'reach', reachLabel:'To the undercity door', reachTime:72, bounty:1200, music:'under', diff:1.25,
+   app:'WILDCARD · Online', under:true, brief:[['cyan','W','<b>You\'re flying the Wildcard now.</b> Twin cannons, faster, tighter handling.'],['mag','M','<b>Missiles.</b> Four per mission. They lock onto the nearest threat. Save them for big targets.'],['orange','▮','<b>Tunnel gates.</b> Find the gap and thread it.'],['red','✹','<b>Mines</b> drift toward you. Shoot them or go around.']],
+   bosses:['gatekeeper'], winLine:"The undercity door is open. Somewhere down here, Trey is still at the table.",
+   after:[
+    {face:'house', ch:'The House', text:"A voice from everywhere at once: \"Every winner eventually becomes predictable, Deuce. Your brother is very happy here.\""},
+    {face:'jamie', ch:'The server farm', text:"\"They keep the winners in a server farm, plugged into a game that never ends. I need four access nodes to find Trey's seat.\""},
+   ]},
+  {id:'m4', ch:2, n:'04', name:'The Server Sea', sub:'Where the winners sleep · the Wildcard', env:'servers', ship:'wild', goal:'nodes', bounty:1800, music:'under', diff:1.35,
+   app:'WILDCARD · Hacking', under:true, brief:[['cyan','4','<b>Hit four access nodes.</b> Follow the cyan NODE marker and fly through each ring so Jamie can find Trey.'],['red','!','<b>Server security</b> sends wardens and drones.'],['orange','▮','<b>Racks and cable bridges</b> block the aisles.']],
+   bosses:['warden'], winLine:"Seat 2-2-1. Trey is inside the game right now.",
+   after:[
+    {face:'jamie', ch:'Seat 2-2-1', text:"\"He's inside the game. The only way to reach him is to go in after him.\""},
+    {face:'deuce', ch:'Deuce', text:"\"Then plug me in.\""},
+    {img:4, ch:'Inside', text:"The world goes gold. Vegas, but perfect. Nobody's broke, nobody's losing, and everybody is smiling the same smile."},
+   ]},
+  {id:'m5', ch:3, n:'05', name:'Inside the Game', sub:'The golden Vegas · the Wildcard', env:'sim', ship:'wild', goal:'reach', reachLabel:"To Trey's table", reachTime:74, bounty:2400, music:'sim', diff:1.45,
+   app:'SIMULATION · Gold Vegas', under:true, brief:[['gold','♠','<b>Reach Trey\'s table.</b> The House controls everything in here.'],['red','!','<b>The city glitches.</b> Watch for buildings and enemies that flicker in and out.'],['mag','%','<b>Your odds matter more in here.</b> Bet on yourself.']],
+   bosses:['dealer'], winLine:"You're at the table. Trey looks up from his cards.",
+   after:[
+    {img:5, ch:'The table', text:"Trey's at the table, exactly like the footage. Except in here, he's been winning for two days straight."},
+    {face:'trey', ch:'Trey', text:"\"Deuce? You're in the game? Bro, sit down. I can't lose in here.\""},
+    {face:'deuce', ch:'Deuce', text:"\"That's the trap, little bro. Quitting while you're ahead isn't the same as quitting.\""},
+    {face:'trey', ch:'Trey', text:"He looks at his cards for a long time. Then he stands up. \"Get me out of here.\""},
+    {face:'house', ch:'The House', text:"\"Leaving the table forfeits all winnings. Leaving the table is not permitted.\" The gold world starts to crack."},
+   ]},
+  {id:'m6', ch:3, n:'06', name:'Cash Out', sub:'The game collapses · the Wildcard', env:'collapse', ship:'wild', goal:'reach', reachLabel:'To the exit', reachTime:80, bounty:3200, music:'sim', diff:1.55, noBoss:true,
+   app:'SIMULATION · Failing', under:true, brief:[['gold','→','<b>Get Trey to the exit</b> before the game collapses around you.'],['red','!','<b>Everything the House has left</b> is coming at you.'],['cyan','♥','<b>No boss.</b> Just survive the run.']],
+   bosses:[], winLine:"You and Trey wake up in the server farm. Jamie is screaming into the radio.",
+   after:[
+    {face:'jamie', ch:'Waking up', text:"Trey gasps awake in a server pod. Jamie's voice cracks over the radio: \"I've got you. I've got you both.\""},
+    {face:'hunter', ch:'The Collector', text:"\"Impressive. But the House put a price on all three of you. Every crew in the city is coming. Come to the Winners Dome, Deuce. Let's settle it.\""},
+    {face:'trey', ch:'Trey', text:"\"Then we go to the source. The crown over the Dome runs everything. We shut it off.\""},
+   ]},
+  {id:'m7', ch:3, n:'07', name:'The Winners Dome', sub:'The finale · the Wildcard', env:'dome', ship:'wild', goal:'reach', reachLabel:'To the Winners Dome', reachTime:64, bounty:4000, music:'city', diff:1.65,
+   app:'WILDCARD · Final run', brief:[['gold','♛','<b>Take down the crown over the Winners Dome.</b> It runs every odds board in Vegas.'],['red','!','<b>The Collector</b> is waiting. So is every crew in the city.'],['mag','M','<b>Save your missiles</b> for the crown.']],
+   bosses:['collector3', 'crown'], winLine:"The crown over the Winners Dome goes dark.",
+   after:[
+    {img:'sky', ch:'Sunrise', text:"Every odds board in the city flickers, then shows the same thing: nothing at all."},
+    {img:6, ch:'Home', text:"Three plates on the table this time. Trey's home. Jamie's due any day."},
+    {face:'trey', ch:'Trey', text:"\"So what now, big bro? Back to deliveries?\""},
+    {face:'deuce', ch:'Deuce', text:"\"Life's a gamble, little bro. I'm just done letting somebody else hold the dice.\""},
+   ]},
+];
+const PROLOGUE = [
+  {img:0, ch:'Las Vegas · before the Singularity', text:"Before the Singularity, Vegas had street racing. For a minute there, I was the fastest thing on the Strip."},
+  {img:1, ch:'The first flying season', text:"Then they made the cars fly, and they made me the face of it. First pro season. First race. First crash."},
+  {img:2, ch:'Two scars', text:"I walked away with two scars. That's where the name Deuce comes from. I walked away from racing, too."},
+  {img:3, ch:'Trey', text:"My little brother Trey never walked away. He studied every bolt of what went wrong and built me something better. I never took it out of the garage."},
+  {img:4, ch:'The Singularity', text:"Then the technocrats took the city. Every life in Vegas became a line on the odds board, and the Winners Dome became the center of everything."},
+  {img:5, ch:'Bet on yourself', text:"Nobody would fund Trey's ideas, so he did what this city tells everybody to do. He bet on himself. And he kept winning."},
+  {img:6, ch:'Two nights ago', text:"Two nights ago he hit big. He never came home."},
+  {img:7, ch:'Tonight', text:"Me? I fly deliveries now. Head down, no racing, no betting. Tonight I'm halfway through my shift, and Trey still isn't answering."},
+];
+
+/* ---------- Mission timelines ---------- */
+function buildTimeline(id, at, h){
+  const {wave, ring, obs, chips, comm, tip, boss} = h;
+  if(id === 'm1'){
+    at(.3, () => { tip('dash'); tip('steer'); });
+    at(.6, () => comm('dispatch', 'New cargo loaded. Four drops left on this shift. Your cargo is listed on the odds board, so fly smart.'));
+    at(5, () => comm('deuce', "Day two. Still nothing from Trey. Just get through the shift."));
+    at(8, () => wave('drone', 2));
+    at(9.5, () => comm('dispatch', 'Bounty drones on your tail. They want the cargo. Shoot them or lose them.'));
+    at(12, ring); at(14, () => comm('dispatch', 'Drop one ahead. Fly through the gold ring and the package lands on the roof below.'));
+    at(17, () => wave('skimmer', 5));
+    at(19, () => comm('jamie', "Deuce, it's Jamie. Have you heard from your brother? He's still not picking up."));
+    at(22, () => obs('tower')); at(23.5, () => comm('deuce', "Nothing. I'll call you when I park."));
+    at(26, () => obs('bill'));
+    at(27, () => { comm('dispatch', "The sky lane below your altitude masks your signal. Drones can't lock on you in there. Watch the traffic."); tip('lane'); });
+    at(30, () => wave('drone', 4)); at(32, ring); at(35, () => chips('arc'));
+    at(37, () => comm('dispatch', "Your odds are up. Bet on yourself if you want. Win, and the board notices you."));
+    at(38, () => obs('tower')); at(40, () => wave('cruiser'));
+    at(42, () => comm('text', "Quitting while you're ahead isn't the same as quitting, little bro. Come home.", 'DELIVERED · NOT READ'));
+    at(46, () => obs('bridge')); at(49, () => wave('skimmer', 6)); at(51, ring);
+    at(54, () => comm('jamie', "Two days. A city with a camera on every corner, and nobody has seen him?"));
+    at(55, () => obs('tower')); at(56.5, () => wave('drone', 5));
+    at(59.5, () => comm('jamie', "I'm going into the city's open files myself. Give me an hour."));
+    at(61, () => obs('bill', -1)); at(62.3, () => obs('bill', 1)); at(64, () => chips('line'));
+    at(66, () => wave('cruiser')); at(67, () => obs('tower')); at(68, ring);
+    at(72, () => { raiseBounty(Math.max(G.bounty*2, 3000 - G.bounty), 'a private contract'); comm('dispatch', 'Warning. Your bounty just jumped. Somebody put a price on you personally.'); });
+    at(76, () => comm('deuce', "On me? I deliver packages."));
+    at(79.5, () => comm('hunter', "Nothing personal, Deuce. Your odds just got interesting."));
+    at(81, boss);
+  }
+  if(id === 'm2'){
+    at(.6, () => comm('jamie', "Deuce, don't stop for anything. I'm at Trey's place. I need you to see this."));
+    at(4.5, () => comm('deuce', "Jamie, what did you find?"));
+    at(8, () => comm('jamie', "Not over the radio. Every channel in this city is on the odds board."));
+    at(7, () => wave('drone', 4)); at(11, () => obs('tower'));
+    at(12.5, () => comm('dispatch', "DropRun to Deuce. You abandoned your route. Your driver rating is on the board now too."));
+    at(14, () => wave('skimmer', 6)); at(17, () => obs('bill'));
+    at(19, () => comm('hunter', "Running home, Deuce? I know where you live."));
+    at(21, () => wave('cruiser')); at(24, () => obs('bridge')); at(27, () => wave('drone', 6)); at(29, () => chips('arc'));
+    at(31, () => obs('tower')); at(33, () => comm('jamie', "Two more miles. Stay low in the sky lane if they swarm you."));
+    at(35, () => wave('skimmer', 8)); at(38, () => obs('bill', -1)); at(39.3, () => obs('bill', 1));
+    at(41, () => { wave('cruiser'); wave('drone', 3); }); at(45, () => obs('tower')); at(46.5, () => obs('tower'));
+    at(48, () => chips('line')); at(50, () => wave('drone', 7));
+    at(52, () => comm('jamie', "I can see your lights. Come in hot. I've got the garage open."));
+    at(55, () => obs('bridge')); at(57, () => wave('skimmer', 8)); at(60, () => wave('cruiser')); at(63, () => obs('tower'));
+    at(66, () => wave('drone', 6)); at(69, () => comm('hunter', "Not tonight, Deuce."));
+    at(73, boss);
+  }
+  if(id === 'm3'){
+    at(.3, () => tip('wildcard'));
+    at(.6, () => comm('jamie', "The Wildcard handles like nothing you've flown. I'm in your ear the whole way."));
+    at(4.5, () => comm('deuce', "Feels like the first season. Too fast and too quiet."));
+    at(7, () => wave('drone', 4)); at(10, () => wave('mine', 5));
+    at(11.5, () => comm('jamie', "Mines. Shoot them or go around."));
+    at(15, () => obs('gate')); at(18, () => wave('drone', 5)); at(21, () => obs('pipe'));
+    at(23, () => { wave('cruiser'); tip('missile'); });
+    at(25, () => comm('jamie', "Missiles lock on by themselves. Save them for the big ones."));
+    at(28, () => wave('skimmer', 6)); at(31, () => obs('gate')); at(33.5, () => obs('gate'));
+    at(36, () => wave('mine', 7)); at(39, () => chips('line')); at(41, () => obs('pipe'));
+    at(44, () => wave('drone', 6)); at(47, () => wave('cruiser'));
+    at(51, () => obs('gate')); at(53, () => comm('jamie', "There's a door at the end of this tunnel. Something big guards it."));
+    at(56, () => wave('mine', 8)); at(59, () => wave('skimmer', 8)); at(63, () => obs('gate')); at(65, () => obs('pipe'));
+    at(68, () => comm('house', "Visitors are not permitted below the House."));
+    at(72, boss);
+  }
+  if(id === 'm4'){
+    at(.3, () => tip('nodes'));
+    at(.6, () => comm('jamie', "Every rack in here is a person. Thousands of winners, asleep. Hit the access nodes and I'll find Trey."));
+    at(5, () => wave('drone', 4)); at(8, ring); at(10, () => obs('tower'));
+    at(12, () => comm('house', "These people are winning. Why would you wake them?"));
+    at(14, () => wave('skimmer', 6)); at(17, () => obs('pipe')); at(19, () => wave('cruiser'));
+    at(23, () => wave('mine', 6)); at(25, ring); at(27, () => obs('tower')); at(29, () => obs('tower'));
+    at(31, () => comm('jamie', "Two nodes. I'm inside their records now. Keep going."));
+    at(33, () => wave('drone', 7)); at(36, () => obs('pipe')); at(38, () => wave('cruiser')); at(40, () => chips('arc'));
+    at(42, ring); at(45, () => wave('skimmer', 8)); at(48, () => obs('tower')); at(50, () => wave('mine', 7));
+    at(53, () => { wave('cruiser'); wave('drone', 3); }); at(57, () => obs('pipe')); at(59, ring);
+    at(62, () => comm('jamie', "Last node... got it. Something's waking up. Something big."));
+    at(65, boss);
+  }
+  if(id === 'm5'){
+    at(.6, () => comm('house', "Welcome to the game, Deuce. Here, nobody ever loses."));
+    at(4.5, () => comm('deuce', "This is what he's been living in? It's perfect. That's what's wrong with it."));
+    at(7, () => wave('drone', 5)); at(10, () => obs('tower')); at(12, () => wave('skimmer', 7));
+    at(15, () => comm('jamie', "The signal's unstable. Things might flicker. Trust your eyes over the map."));
+    at(17, () => obs('bill')); at(19, () => wave('cruiser')); at(22, () => wave('mine', 6)); at(25, () => obs('bridge'));
+    at(27, () => comm('house', "Your brother's odds are a perfect 1 to 1. He wins every hand. Why take that from him?"));
+    at(29, () => wave('drone', 7)); at(32, () => obs('tower')); at(33.5, () => obs('tower')); at(35, () => chips('arc'));
+    at(37, () => { wave('cruiser'); wave('skimmer', 5); }); at(41, () => obs('bill', -1)); at(42.3, () => obs('bill', 1));
+    at(44, () => wave('mine', 8)); at(47, () => wave('drone', 8)); at(50, () => obs('bridge'));
+    at(52, () => comm('deuce', "Because winning isn't living, and he knows it."));
+    at(55, () => wave('cruiser')); at(58, () => obs('tower')); at(60, () => wave('skimmer', 8)); at(64, () => wave('drone', 6));
+    at(68, () => comm('house', "Then deal with the Dealer."));
+    at(74, boss);
+  }
+  if(id === 'm6'){
+    at(.6, () => comm('trey', "Bro, the whole city's coming apart! Left! Go left!"));
+    at(4, () => comm('deuce', "Hold on, little bro. Just like the old days."));
+    at(6, () => wave('drone', 6)); at(8, () => obs('tower')); at(10, () => obs('tower')); at(12, () => wave('mine', 7));
+    at(14, () => comm('jamie', "The exit is at the edge of the map. Eighty seconds before the game deletes everything."));
+    at(16, () => obs('bill')); at(18, () => wave('cruiser')); at(20, () => obs('bridge')); at(22, () => wave('skimmer', 8));
+    at(25, () => comm('trey', "I thought I was beating them. I was just their best customer."));
+    at(27, () => obs('tower')); at(28.5, () => obs('tower')); at(30, () => wave('drone', 8)); at(33, () => chips('line'));
+    at(35, () => { wave('cruiser'); wave('mine', 5); }); at(39, () => obs('bill', -1)); at(40.3, () => obs('bill', 1)); at(42, () => obs('bridge'));
+    at(44, () => comm('house', "Deleting session. Deleting session. Deleting session."));
+    at(46, () => wave('skimmer', 9)); at(49, () => wave('drone', 9)); at(52, () => obs('tower')); at(53.5, () => obs('tower')); at(55, () => obs('tower'));
+    at(57, () => { wave('cruiser'); wave('cruiser'); }); at(61, () => wave('mine', 9)); at(64, () => obs('bridge'));
+    at(66, () => comm('trey', "I can see it! The light! Punch it!")); at(68, () => wave('drone', 10)); at(71, () => obs('tower')); at(73, () => obs('tower'));
+  }
+  if(id === 'm7'){
+    at(.6, () => comm('jamie', "The Winners Dome is straight ahead. Every crew in Vegas is between you and it."));
+    at(4.5, () => comm('trey', "That crown on top runs every odds board in the city. Kill the crown, kill the House."));
+    at(7, () => wave('drone', 7)); at(10, () => obs('tower')); at(12, () => wave('skimmer', 8)); at(15, () => wave('cruiser'));
+    at(18, () => obs('bridge')); at(20, () => wave('drone', 8)); at(23, () => obs('bill'));
+    at(25, () => comm('house', "Deuce. Two point four to one, and falling. The city has bet against you."));
+    at(27, () => { wave('cruiser'); wave('mine', 6); }); at(31, () => obs('tower')); at(32.5, () => obs('tower')); at(34, () => chips('arc'));
+    at(36, () => wave('skimmer', 9)); at(39, () => obs('bridge')); at(41, () => wave('drone', 9));
+    at(44, () => comm('deuce', "Let them bet. I'm not playing their game anymore."));
+    at(46, () => { wave('cruiser'); wave('cruiser'); }); at(50, () => obs('tower')); at(52, () => wave('mine', 8)); at(55, () => wave('drone', 8));
+    at(59, () => comm('hunter', "Last dance, Deuce."));
+    at(64, boss);
+  }
+}
+
+/* ================= State ================= */
+const P = {x:0, y:4};
+const G = {state:'title'};
+let M = MISSIONS[0], CUR = 0;
+let pBullets = [], eBullets = [], enemies = [], chips = [], obstacles = [], parts = [], cars = [], rings = [], missiles = [];
+let T = [];
+function freshState(state){
+  let bounty = M.bounty || 600, pay = 0;
+  if(M.contracts){ const ci = Number((document.querySelector('input[name="contract"]:checked') || {value:0}).value); G.contract = CONTRACTS[ci]; bounty = G.contract.bounty; }
+  Object.assign(G, {state, t:0, speedNow:22, pay, hits:0, shield:100, luck:0, combo:0, comboT:0, mult:1,
+    fireCD:0, rollT:0, rollCD:0, rollDir:1, boost:100, boosting:false, vx:0, vy:0, effects:{}, ti:0, boss:null, bossQ:[], shake:0,
+    close:0, bets:0, reeling:false, endT:-1, dead:false, drops:0, dropsDone:0, bounty, peakBounty:bounty, carT:1, masked:false,
+    tipsOn:false, tipsSeen:{}, missiles:M.ship === 'wild' ? 4 : 0, missileCD:0, glitchT:0});
+}
+const tier = () => G.bounty < 800 ? 1 : G.bounty < 2400 ? 2 : 3;
+const diffExtra = () => Math.round((M.diff - 1)*3);
+function clearAll(){
+  for(const arr of [pBullets, eBullets, enemies, chips, obstacles, parts, cars, rings, missiles]) for(const o of arr) scene.remove(o.m);
+  pBullets = []; eBullets = []; enemies = []; chips = []; obstacles = []; parts = []; cars = []; rings = []; missiles = [];
+  if(G.boss) scene.remove(G.boss.g);
+}
+
+/* ================= Popups, comms, tips, bets ================= */
+function popup(text, cls=''){
+  const d = document.createElement('div'); d.className = 'pop ' + cls; d.textContent = text;
+  const box = $('#popups'); box.appendChild(d); while(box.children.length > 4) box.firstChild.remove();
+  setTimeout(() => d.remove(), 1000);
+}
+let commQ = [], commCur = null, commT = 0;
+function comm(who, text, sub=''){ commQ.push({who, text, sub}); }
+function updateComms(dt){
+  if(!commCur && commQ.length){
+    commCur = commQ.shift(); commT = 0;
+    const s = SPEAKERS[commCur.who], box = $('#comms');
+    box.style.setProperty('--c', s.c); $('#commImg').src = portraitURL[commCur.who];
+    $('#commWho').textContent = s.name; $('#commText').textContent = ''; $('#commSub').textContent = '';
+    box.hidden = false;
+    if(commCur.who === 'text' || commCur.who === 'jamie') sfx.ping();
+  }
+  if(commCur){
+    commT += dt;
+    const n = Math.min(commCur.text.length, Math.floor(commT*48)), el = $('#commText');
+    if(el.textContent.length !== n) el.textContent = commCur.text.slice(0, n);
+    if(n === commCur.text.length && commCur.sub && commT > commCur.text.length/48 + .8) $('#commSub').textContent = commCur.sub;
+    if(commT > commCur.text.length/48 + 2.4){ commCur = null; if(!commQ.length) $('#comms').hidden = true; }
+  }
+}
+const TIPS = {
+  dash:{step:'Your dashboard', title:'Read your dash', focus:() => ['.hud-tl', '.hud-tr', '.hud-bc'], body:() =>
+    `<dl><dt style="color:var(--gold)">Shield bar · top left</dt><dd>Your health. Hits drain it. If it empties, you lose the run.</dd>
+    <dt style="color:#8dffb0">Pay · top right</dt><dd>Every drop you make and every drone you shoot pays you.</dd>
+    <dt style="color:var(--danger)">Bounty · top right</dt><dd>How bad the city wants you. Higher bounty, tougher crews.</dd>
+    <dt style="color:var(--magenta)">Your odds · ${touchMode ? 'top' : 'bottom'}</dt><dd>Close calls fill it. Past the white line you can bet on yourself.</dd></dl>`},
+  steer:{step:'Controls', title:'Fly the truck', focus:() => touchMode ? ['.stick', '.tbtns'] : [], body:() => touchMode
+    ? 'Drag the <b>thumbstick</b> to steer up, down, left and right. Hold <b>Fire</b> to shoot. Hold <b>Boost</b> to speed up.'
+    : 'Steer with the <b>arrow keys</b> or <b>WASD</b>. Hold <b>Space</b> to shoot. Hold <b>Shift</b> to boost.'},
+  drones:{step:'Threat', title:'Bounty drones', focus:() => touchMode ? ['.tbtns'] : [], body:() =>
+    `Anything inside <b style="color:var(--danger)">red brackets</b> is hunting you. ${touchMode ? 'Hold <b>Fire</b>' : 'Hold <b>Space</b>'} and aim with the green sights to shoot them down. Each one pays.`},
+  roll:{step:'Defense', title:'Barrel roll', focus:() => touchMode ? ['.tbtns'] : [], body:() =>
+    `Incoming shots glow <b style="color:#ff9a1f">orange</b>. ${touchMode ? 'Tap <b>Roll</b>' : 'Double-tap <b>left</b> or <b>right</b>, or press <b>Q</b> / <b>E</b>,'} to spin. A roll knocks shots away and raises your odds.`},
+  drop:{step:'Objective', title:'Make the drop', focus:() => ['#dropmark'], body:() =>
+    "See the <b style=\"color:var(--gold)\">gold DROP marker</b>? That's your delivery. Line up and fly straight through the gold ring. Miss it and you don't get paid."},
+  obstacle:{step:'Hazard', title:'Watch your path', focus:() => [], body:() =>
+    'An <b style="color:#ff9a1f">orange warning sign</b> means something is in your way. Fly over, under or around it.'},
+  lane:{step:'Hide', title:'The sky lane', focus:() => [], body:() =>
+    "Fly <b>low</b>, down into the traffic at the bottom of your airspace. Drones lose your signal in there and can't shoot, and your bounty cools off. Don't hit the cars."},
+  bet:{step:'The gamble', title:'Bet on yourself', focus:() => ['.hud-bc'].concat(touchMode ? ['.tbtns'] : []), body:() =>
+    `Your odds passed 25%. ${touchMode ? 'Tap the gold <b>Bet</b> button' : 'Press <b>R</b>'} to spin. Win and you get triple fire, double pay or full shields. Lose and the House takes its cut. Win too much and your bounty climbs.`},
+  boss:{step:'Boss', title:'Big target', focus:() => ['.bossbar'], body:() =>
+    'Watch the bar at the top. Keep moving, roll through spread shots, and keep hitting it.' + (M.ship === 'wild' ? ' This is what missiles are for.' : '')},
+  wildcard:{step:'New ride', title:'The Wildcard', focus:() => touchMode ? ['.tbtns'] : [], body:() =>
+    'Trey built this for you. It fires <b>twin cannons</b> and handles tighter than the truck. Underground there\'s no sky lane to hide in, so keep moving.'},
+  missile:{step:'New weapon', title:'Homing missiles', focus:() => ['#missiles'].concat(touchMode ? ['.tbtns'] : []), body:() =>
+    `${touchMode ? 'Tap <b>Missile</b>' : 'Press <b>B</b>'} to fire. Missiles lock onto the nearest threat and hit hard. You get four per mission.`},
+  nodes:{step:'Objective', title:'Access nodes', focus:() => [], body:() =>
+    'Follow the <b style="color:var(--cyan)">cyan NODE marker</b> and fly through each ring. Every node lets Jamie dig deeper to find Trey.'},
+};
+let tipQ = [], tipShownAt = 0;
+function tip(key){
+  if(!G.tipsOn || G.tipsSeen[key] || G.dead || (G.state !== 'play' && G.state !== 'tip')) return;
+  G.tipsSeen[key] = true; tipQ.push(key);
+  if(G.state === 'play') nextTip();
+}
+function nextTip(){
+  if(!tipQ.length) return;
+  const t = TIPS[tipQ.shift()];
+  $('#tipStep').textContent = t.step; $('#tipTitle').textContent = t.title; $('#tipBody').innerHTML = t.body();
+  $('#tipHint').textContent = touchMode ? 'Tap anywhere to keep flying' : 'Click or press any key to keep flying';
+  t.focus().forEach(s => { const el = $(s); if(el) el.classList.add('tip-focus'); });
+  show('#tip', true); G.state = 'tip'; tipShownAt = performance.now();
+  touchFire = touchBoost = false; for(const k in keys) keys[k] = false;
+  stick.active = false; stick.x = stick.y = 0; knob.style.transform = '';
+}
+function closeTip(){
+  if(performance.now() - tipShownAt < 600) return;
+  document.querySelectorAll('.tip-focus').forEach(el => el.classList.remove('tip-focus'));
+  show('#tip', false); G.state = 'play';
+  if(tipQ.length) setTimeout(() => { if(G.state === 'play') nextTip(); }, 300);
+}
+addEventListener('pointerdown', e => { if(G.state === 'tip'){ e.stopPropagation(); e.preventDefault(); closeTip(); } }, true);
+
+const SYMS = ['7','BAR','$','♦','♣','♥','♠'];
+const GOOD = [
+  {label:'TRIPLE FIRE · 10s', sym:['7','7','7'], apply:() => { G.effects.triple = 10; }},
+  {label:'DOUBLE PAY · 12s', sym:['$','$','$'], apply:() => { G.effects.double = 12; }},
+  {label:'SHIELDS RESTORED', sym:['♦','♦','♦'], apply:() => { G.shield = 100; }},
+  {label:'CASH RAIN', sym:['BAR','BAR','BAR'], apply:() => spawnChips('rain')},
+];
+const BAD = [
+  {label:'SNAKE EYES · DOUBLE DAMAGE · 8s', sym:['1','1','✕'], apply:() => { G.effects.snake = 8; }},
+  {label:'BUST · THE HOUSE TAKES 25%', sym:['7','BAR','✕'], apply:() => { G.pay = Math.floor(G.pay*.75); }},
+  {label:'COLD DICE · SLOW FIRE · 7s', sym:['♣','♠','✕'], apply:() => { G.effects.cold = 7; }},
+];
+const winOdds = l => .35 + l/100*.5;
+function gamble(){
+  if(G.state !== 'play' || G.reeling || G.dead) return;
+  if(G.luck < 25){ popup('Need 25% odds to bet', 'bad'); return; }
+  const good = Math.random() < winOdds(G.luck), o = good ? pick(GOOD) : pick(BAD);
+  G.luck = 0; G.bets++; G.reeling = true;
+  const reels = [$('#r0'), $('#r1'), $('#r2')], lab = $('#reelLabel');
+  lab.textContent = 'Betting on yourself…'; lab.className = ''; show('#reels', true);
+  let stopped = 0, ticks = 0;
+  const iv = setInterval(() => {
+    ticks++;
+    reels.forEach((r, i) => { if(i >= stopped) r.textContent = pick(SYMS); });
+    if(ticks % 2 === 0) sfx.reel();
+    if(ticks === 10 || ticks === 15 || ticks === 20){ reels[stopped].textContent = o.sym[stopped]; stopped++; }
+    if(stopped === 3){
+      clearInterval(iv); lab.textContent = o.label; lab.className = good ? 'win' : 'lose';
+      if(G.state === 'play' || G.state === 'tip'){ o.apply(); if(good){ sfx.win(); raiseBounty(G.bounty*.4 + 200, 'You won. The city noticed'); } else sfx.hurt(); }
+      setTimeout(() => { show('#reels', false); G.reeling = false; }, 1500);
+    }
+  }, 50);
+}
+function addLuck(n, label){
+  if(G.state !== 'play' || G.dead) return;
+  const before = G.luck; G.luck = Math.min(100, G.luck + n);
+  if(label) popup('+' + n + ' odds · ' + label, 'luck');
+  if(before < 25 && G.luck >= 25){ popup(touchMode ? 'Bet ready · tap Bet' : 'Bet ready · press R', 'big'); tip('bet'); }
+  sfx.luck();
+}
+function raiseBounty(n, label){
+  const before = tier(); G.bounty += n; G.peakBounty = Math.max(G.peakBounty, G.bounty);
+  if(label) popup('Bounty +' + money(n) + ' · ' + label, 'bad');
+  if(tier() > before) popup('Bounty level ' + tier() + ' · tougher crews incoming', 'bad');
+}
+function payAdd(n, label){ const v = Math.round(n * (G.effects.double ? 2 : 1)); G.pay += v; if(label) popup('+' + money(v) + ' · ' + label, 'cash'); }
+
+/* ================= Spawning ================= */
+function addEnemy(type, x, y, z, extra={}){
+  let m, r, hp, cash;
+  if(type === 'drone'){
+    m = new THREE.Group();
+    if(droneModel) m.add(droneModel.clone()); else m.add(new THREE.Mesh(geo.drone, mat.drone));
+    const eye = new THREE.Mesh(unitBox, basicMat(COL.red)); eye.scale.set(.35,.12,.1); eye.position.set(0, .1, 1.0); m.add(eye);
+    r = 1.0; hp = 1; cash = 15;
+  } else if(type === 'skimmer'){
+    m = new THREE.Group(); m.add(new THREE.Mesh(geo.skimmer, mat.skimmer));
+    const core = new THREE.Mesh(unitBox, basicMat(COL.pink)); core.scale.set(.4,.4,.4); m.add(core);
+    r = 1.0; hp = 1; cash = 20;
+  } else if(type === 'mine'){
+    m = new THREE.Group(); m.add(new THREE.Mesh(geo.mine, mat.mine));
+    for(let i=0;i<8;i++){ const s = new THREE.Mesh(geo.spike, basicMat(COL.red)); const a = i*Math.PI/4; s.position.set(Math.cos(a)*.8, Math.sin(a)*.8, 0); s.rotation.z = a - Math.PI/2; m.add(s); }
+    r = 1.0; hp = 2; cash = 25;
+  } else {
+    m = new THREE.Group();
+    const b = new THREE.Mesh(unitBox, mat.limo); b.scale.set(3, .9, 5.2); m.add(b);
+    const roof = new THREE.Mesh(unitBox, mat.limo); roof.scale.set(2.4, .5, 2.4); roof.position.y = .65; m.add(roof);
+    const lr = new THREE.Mesh(unitBox, basicMat(COL.red)); lr.scale.set(1, .22, .4); lr.position.set(-.6, 1.0, 0); m.add(lr);
+    const lb = new THREE.Mesh(unitBox, basicMat(COL.blue)); lb.scale.set(1, .22, .4); lb.position.set(.6, 1.0, 0); m.add(lb);
+    const trim = new THREE.Mesh(unitBox, basicMat(ENV === 'servers' ? COL.teal : COL.gold)); trim.scale.set(3.05, .1, 5.25); trim.position.y = -.42; m.add(trim);
+    m.userData.lights = [lr, lb];
+    r = 2.0; hp = 5; cash = 120;
+  }
+  addLock(m, type === 'cruiser' ? .12 : .085);
+  m.position.set(x, y, z); scene.add(m);
+  enemies.push(Object.assign({type, m, r, hp, cash, t:0, fired:false, baseX:x, phase:0, state:'in', holdT:0, burst:0, burstT:0, crossed:false}, extra));
+}
+function spawnWave(type, n){
+  const extra = (tier() - 1) + diffExtra();
+  if(type === 'drone') for(let i=0;i<n + extra;i++) addEnemy('drone', rand(-8, 8), rand(2.4, 7), -175 - i*11);
+  else if(type === 'skimmer'){ const bx = rand(-4, 4), y = rand(3, 6.5); for(let i=0;i<n + extra;i++) addEnemy('skimmer', bx, y, -175 - i*6, {baseX:bx, phase:i*.55}); }
+  else if(type === 'mine') for(let i=0;i<n + Math.floor(extra/2);i++) addEnemy('mine', rand(-8, 8), rand(1.5, 7.5), -170 - i*9);
+  else {
+    if(M.goal === 'drops' && tier() === 1){ spawnWave('drone', 3); return; }
+    addEnemy('cruiser', rand(-6, 6), rand(3, 6), -185);
+    if(tier() === 3 && M.diff >= 1.3) addEnemy('cruiser', rand(-6, 6), rand(3, 6), -205);
+  }
+}
+function addChip(x, y, z){ const m = new THREE.Mesh(geo.chip, chipMats); m.rotation.x = Math.PI/2; m.position.set(x, y, z); scene.add(m); chips.push({m}); }
+function spawnChips(pattern){
+  if(pattern === 'arc'){ for(let i=0;i<9;i++){ const a = i/8; addChip(-6 + a*12, 3 + Math.sin(a*Math.PI)*3, -180 - i*3.5); } }
+  else if(pattern === 'line'){ const x = rand(-6, 6), y = rand(2.5, 6.5); for(let i=0;i<8;i++) addChip(x, y, -180 - i*5); }
+  else { for(let i=0;i<16;i++) addChip(rand(-8, 8), rand(1.6, 7.5), rand(-150, -40)); popup('Cash rain', 'big'); }
+}
+function spawnRing(){
+  const c = M.goal === 'nodes' ? COL.cyan : COL.gold;
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(geo.ring, basicMat(c)));
+  g.add(new THREE.Mesh(new THREE.CircleGeometry(2.1, 32), new THREE.MeshBasicMaterial({color:c, transparent:true, opacity:.12, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide})));
+  const x = rand(-6, 6), y = rand(3.2, 6.4), len = y - floorY();
+  const beacon = new THREE.Mesh(unitBox, new THREE.MeshBasicMaterial({color:c, transparent:true, opacity:.3, blending:THREE.AdditiveBlending, depthWrite:false}));
+  beacon.scale.set(.3, len, .3); beacon.position.y = -len/2 - 2.3; g.add(beacon);
+  g.position.set(x, y, -220); scene.add(g);
+  G.drops++; rings.push({m:g, x, y, n:G.drops, crossed:false});
+}
+function spawnObstacle(type, sideArg){
+  const g = new THREE.Group(); let o;
+  const FY = floorY();
+  if(type === 'bill'){
+    const side = sideArg ?? (Math.random() < .5 ? -1 : 1);
+    const face = new THREE.MeshBasicMaterial({map:pick(billTexes)});
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(9.5, 4.2, .4), [darkSide, darkSide, darkSide, darkSide, face, face]));
+    const edge = new THREE.Mesh(unitBox, basicMat(COL.orange)); edge.scale.set(9.8, .18, .45); edge.position.y = -2.15; g.add(edge);
+    for(const s of [-1, 1]){ const lift = new THREE.Mesh(unitBox, mat.limo); lift.scale.set(1.2, .5, 1.2); lift.position.set(s*4.2, 2.5, 0); g.add(lift); }
+    addWarn(g, 3.6);
+    o = {type, x:side*4.4, y:rand(3.4, 5.6), hw:4.75, hh:2.1};
+  } else if(type === 'tower'){
+    const top = rand(3.2, 5.8), x = rand(-6, 6), w = rand(3.6, 5), h = top - FY;
+    let body;
+    if(ENV === 'servers'){ const tex = rackTex.clone(); tex.needsUpdate = true; tex.repeat.set(2, Math.round(h/4)); body = new THREE.Mesh(unitBox, new THREE.MeshLambertMaterial({color:0x0a1418, emissive:0xffffff, emissiveMap:tex, emissiveIntensity:.7})); }
+    else { const tm = towerMat(); tm.tex.repeat.set(1, Math.round(h/8)); body = new THREE.Mesh(unitBox, tm.mat); }
+    body.scale.set(w, h, w); body.position.y = -h/2; g.add(body);
+    const crown = new THREE.Mesh(unitBox, basicMat(COL.orange)); crown.scale.set(w + .2, .5, w + .2); crown.position.y = .25; g.add(crown);
+    const band = new THREE.Mesh(unitBox, basicMat(COL.red)); band.scale.set(w + .2, .3, w + .2); band.position.y = -1.6; g.add(band);
+    addWarn(g, 2.2);
+    o = {type, x, y:top, hw:w/2, top};
+  } else if(type === 'gate'){
+    const gap = rand(-5, 5), gw = 7;
+    const lw = gap - gw/2 + 14, rw = 14 - (gap + gw/2);
+    const lb = new THREE.Mesh(unitBox, concrete); lb.scale.set(lw, 16, 1.5); lb.position.set(-14 + lw/2, 4.5, 0); g.add(lb);
+    const rb = new THREE.Mesh(unitBox, concrete); rb.scale.set(rw, 16, 1.5); rb.position.set(14 - rw/2, 4.5, 0); g.add(rb);
+    for(const xx of [gap - gw/2, gap + gw/2]){ const e = new THREE.Mesh(unitBox, basicMat(COL.orange)); e.scale.set(.3, 16, 1.6); e.position.set(xx, 4.5, 0); g.add(e); }
+    addWarn(g, 9, gap - gw/2 - 2); addWarn(g, 9, gap + gw/2 + 2);
+    o = {type, x:0, y:4.5, gap, gw};
+  } else if(type === 'pipe'){
+    const low = Math.random() < .5, y = low ? 2 : 6.6;
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(.7, .7, 30, 12), concrete); p.rotation.z = Math.PI/2; g.add(p);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(.75, .75, 30, 12, 1, true), new THREE.MeshBasicMaterial({color:COL.orange, wireframe:true})); band.rotation.z = Math.PI/2; g.add(band);
+    addWarn(g, 1.6);
+    o = {type, x:0, y, hw:15, hh:.7};
+  } else { // skyway bridge
+    const y = 6.3;
+    const beam = new THREE.Mesh(unitBox, new THREE.MeshLambertMaterial({color:0x2b2244, emissive:0x120b20})); beam.scale.set(30, 1.2, 2.2); g.add(beam);
+    const strip = new THREE.Mesh(unitBox, basicMat(COL.orange)); strip.scale.set(30.1, .25, 2.25); strip.position.y = -.55; g.add(strip);
+    for(const s of [-1, 1]){ const h = y - FY + 6, tm = towerMat(); tm.tex.repeat.set(1, Math.round(h/8)); const t = new THREE.Mesh(unitBox, tm.mat); t.scale.set(5, h, 5); t.position.set(s*15.5, -h/2 + 6, 0); g.add(t); }
+    addWarn(g, 1.8);
+    o = {type, x:0, y, hw:15, hh:.6};
+  }
+  g.position.set(o.x, o.y, -230); scene.add(g);
+  obstacles.push(Object.assign(o, {m:g, crossed:false}));
+}
+function spawnCar(){
+  const g = new THREE.Group(), col = pick(carColors);
+  const body = new THREE.Mesh(unitBox, new THREE.MeshLambertMaterial({color:col, emissive:0x0a0612})); body.scale.set(2.1, .6, 3.6); g.add(body);
+  const roof = new THREE.Mesh(unitBox, body.material); roof.scale.set(1.6, .45, 1.8); roof.position.set(0, .5, -.2); g.add(roof);
+  for(const s of [-1, 1]){ const tl = new THREE.Mesh(unitBox, basicMat(COL.red)); tl.scale.set(.5, .16, .1); tl.position.set(s*.7, .05, 1.82); g.add(tl); }
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 3.6), new THREE.MeshBasicMaterial({color:pick([COL.magenta, COL.cyan, COL.violet]), transparent:true, opacity:.35, blending:THREE.AdditiveBlending, depthWrite:false}));
+  glow.rotation.x = -Math.PI/2; glow.position.y = -.4; g.add(glow);
+  g.position.set(rand(-9, 9), rand(1.1, 2.1), -200); scene.add(g);
+  cars.push({m:g, speed:rand(12, 22), crossed:false});
+}
+function buildBoss(cfg){
+  const g = new THREE.Group();
+  let body, hw = 3.4, hh = 1.5, rotor = new THREE.Group();
+  if(cfg.shape === 'gunship'){
+    const shell = new THREE.MeshLambertMaterial({color:0x1d1426, emissive:0x2a0808});
+    body = new THREE.Mesh(unitBox, shell); body.scale.set(6, 1.9, 4.2); g.add(body);
+    const trim = new THREE.Mesh(unitBox, basicMat(cfg.color)); trim.scale.set(6.15, .25, 4.3); trim.position.y = -.95; g.add(trim);
+    const cockpit = new THREE.Mesh(unitBox, basicMat(COL.gold)); cockpit.scale.set(2.6, .9, .4); cockpit.position.set(0, .2, 2.15); g.add(cockpit);
+    const tail = new THREE.Mesh(unitBox, shell); tail.scale.set(.8, .8, 5.5); tail.position.set(0, .3, -4.6); g.add(tail);
+    const b1 = new THREE.Mesh(unitBox, basicMat(0x3a2f55)); b1.scale.set(12, .08, .6); rotor.add(b1);
+    const b2 = b1.clone(); b2.rotation.y = Math.PI/2; rotor.add(b2); rotor.position.y = 1.35; g.add(rotor);
+    for(const s of [-1, 1]){ const gun = new THREE.Mesh(unitBox, basicMat(COL.magenta)); gun.scale.set(.5, .5, 2.2); gun.position.set(s*3.4, -.4, .8); g.add(gun); }
+  } else if(cfg.shape === 'ring'){
+    body = new THREE.Mesh(new THREE.TorusGeometry(4.2, 1, 10, 32), new THREE.MeshLambertMaterial({color:0x2a2436, emissive:0x2a1406})); g.add(body);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), basicMat(COL.orange)); g.add(core);
+    for(let i=0;i<4;i++){ const pod = new THREE.Mesh(unitBox, basicMat(COL.red)); const a = i*Math.PI/2; pod.scale.set(1.2, 1.2, 1.6); pod.position.set(Math.cos(a)*4.2, Math.sin(a)*4.2, .6); rotor.add(pod); }
+    g.add(rotor); hw = 5; hh = 5;
+  } else if(cfg.shape === 'cards'){
+    body = new THREE.Group(); g.add(body);
+    cardTexes.forEach((tex, i) => { const c = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), new THREE.MeshBasicMaterial({map:tex, side:THREE.DoubleSide})); c.position.set((i - 1)*3.4, 0, (i === 1 ? .2 : 0)); c.rotation.z = (1 - i)*.18; rotor.add(c); });
+    g.add(rotor); hw = 5.2; hh = 2.4;
+    body.material = new THREE.MeshLambertMaterial(); // flash target placeholder
+  } else { // crown
+    body = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, 1.6, 24, 1, true), new THREE.MeshLambertMaterial({color:0x6a4a10, emissive:0x6a4a10, side:THREE.DoubleSide})); g.add(body);
+    for(let i=0;i<7;i++){ const a = i/7*Math.PI*2; const s = new THREE.Mesh(new THREE.ConeGeometry(.6, 3, 8), basicMat(COL.gold)); s.position.set(Math.cos(a)*4.5, 2.2, Math.sin(a)*4.5); g.add(s); const j = new THREE.Mesh(new THREE.SphereGeometry(.4, 10, 8), basicMat(COL.magenta)); j.position.set(Math.cos(a)*4.5, 3.9, Math.sin(a)*4.5); g.add(j); }
+    const core = new THREE.Mesh(new THREE.SphereGeometry(2, 20, 14), basicMat(COL.magenta)); core.position.y = .3; rotor.add(core); g.add(rotor);
+    hw = 5.5; hh = 3;
+  }
+  addLock(g, .17);
+  return {g, body, rotor, hw, hh};
+}
+function spawnBoss(){
+  const key = G.bossQ.shift(); if(!key) return;
+  const cfg = BOSS[key], built = buildBoss(cfg);
+  built.g.position.set(0, 18, -130); scene.add(built.g);
+  G.boss = Object.assign(built, {cfg, hp:Math.round(cfg.hp*(.8 + M.diff*.2)), max:0, phase:1, t:0, fireT:2.5, burstT:4, droneT:7, state:'enter', flash:0});
+  G.boss.max = G.boss.hp;
+  $('#bossName').textContent = cfg.name; show('#bossbar', true);
+}
+function bossDown(){
+  const B = G.boss, cfg = B.cfg;
+  show('#bossbar', false); payAdd(cfg.retreat ? 800 : 1500, cfg.retreat ? 'driven off' : 'destroyed'); G.hits++; G.shake = .8; sfx.boom();
+  for(const b of eBullets) scene.remove(b.m); eBullets = [];
+  if(cfg.retreat){ B.state = 'retreat'; B.rt = 0; } else { B.state = 'dying'; B.dieT = 0; }
+  for(const [who, line] of cfg.end) comm(who, line);
+  if(G.bossQ.length){ setTimeout(() => { if(G.state === 'play' || G.state === 'tip'){ if(G.boss) scene.remove(G.boss.g); spawnBoss(); } }, 6000); }
+  else { G.endT = 0; if(M.id === 'm1'){ comm('jamie', "Deuce. I found him on the cameras. I can't say it on this line."); comm('jamie', 'Get to the house. Now.'); } }
+}
+
+/* ================= Input ================= */
+const keys = {};
+let touchMode = matchMedia('(pointer: coarse)').matches, touchBoost = false, touchFire = false;
+const stick = {active:false, id:null, x:0, y:0};
+const lastTap = {'-1':0, '1':0};
+function setTouchMode(){ touchMode = true; document.body.classList.add('touch'); if(G.state === 'play') show('#touch', true); }
+if(touchMode) document.body.classList.add('touch');
+addEventListener('keydown', e => {
+  if(e.target.tagName === 'INPUT') return;
+  if(G.state === 'tip'){ e.preventDefault(); if(!e.repeat) closeTip(); return; }
+  if(G.state === 'cine'){
+    if(e.code === 'Escape'){ endCine(); return; }
+    if(['Space','Enter','ArrowRight'].includes(e.code)){ e.preventDefault(); nextCard(); }
+    return;
+  }
+  keys[e.code] = true;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code) && G.state === 'play') e.preventDefault();
+  if(e.repeat) return;
+  const side = (e.code === 'ArrowLeft' || e.code === 'KeyA') ? -1 : (e.code === 'ArrowRight' || e.code === 'KeyD') ? 1 : 0;
+  if(side){ const t = performance.now(); if(t - lastTap[side] < 280) roll(side); lastTap[side] = t; }
+  if(e.code === 'KeyQ') roll(-1);
+  if(e.code === 'KeyE') roll(1);
+  if(e.code === 'KeyR') gamble();
+  if(e.code === 'KeyB') fireMissile();
+  if(e.code === 'KeyP' || e.code === 'Escape') togglePause();
+  if(e.code === 'KeyM') toggleMute();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('pointerdown', e => { if(e.pointerType === 'touch' && !touchMode) setTouchMode(); }, true);
+const stickEl = $('#stick'), knob = $('#knob');
+let flick = {side:0, t:0, armed:true};
+function stickMove(e){
+  const r = stickEl.getBoundingClientRect(), R = r.width/2 - 20;
+  let dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2);
+  const d = Math.hypot(dx, dy); if(d > R){ dx = dx/d*R; dy = dy/d*R; }
+  knob.style.transform = `translate(${dx}px, ${dy}px)`; stick.x = dx/R; stick.y = dy/R;
+  const side = stick.x > .85 ? 1 : stick.x < -.85 ? -1 : 0;
+  if(side && flick.armed){ const t = performance.now(); if(flick.side === side && t - flick.t < 340){ roll(side); flick.t = 0; } else { flick.side = side; flick.t = t; } flick.armed = false; }
+  if(Math.abs(stick.x) < .4) flick.armed = true;
+}
+stickEl.addEventListener('pointerdown', e => { e.preventDefault(); stick.active = true; stick.id = e.pointerId; stickEl.setPointerCapture(e.pointerId); stickMove(e); });
+stickEl.addEventListener('pointermove', e => { if(stick.active && e.pointerId === stick.id) stickMove(e); });
+const stickEnd = e => { if(e.pointerId !== stick.id) return; stick.active = false; stick.x = stick.y = 0; knob.style.transform = ''; flick.armed = true; };
+stickEl.addEventListener('pointerup', stickEnd); stickEl.addEventListener('pointercancel', stickEnd);
+function holdButton(el, set){
+  el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture(e.pointerId); set(true); el.classList.add('down'); });
+  for(const ev of ['pointerup','pointercancel','lostpointercapture']) el.addEventListener(ev, () => { set(false); el.classList.remove('down'); });
+}
+holdButton($('#tFire'), v => { touchFire = v; });
+holdButton($('#tBoost'), v => { touchBoost = v; });
+function tapButton(el, fn){ el.addEventListener('pointerdown', e => { e.preventDefault(); fn(); el.classList.add('down'); setTimeout(() => el.classList.remove('down'), 160); }); }
+tapButton($('#tBet'), gamble);
+tapButton($('#tRoll'), () => roll(stick.x < -.2 ? -1 : 1));
+tapButton($('#tMissile'), () => fireMissile());
+function roll(dir){ if(G.state !== 'play' || G.rollCD > 0 || G.dead) return; G.rollT = .45; G.rollCD = .9; G.rollDir = dir; sfx.roll(); }
+function fireMissile(){
+  if(G.state !== 'play' || M.ship !== 'wild' || G.dead) return;
+  if(G.missiles <= 0){ popup('Out of missiles', 'bad'); return; }
+  if(G.missileCD > 0) return;
+  G.missiles--; G.missileCD = .5;
+  const m = new THREE.Mesh(geo.missile, basicMat(COL.white)); m.position.set(P.x, P.y - .3, -2.2);
+  const h = new THREE.Sprite(missileHalo); h.scale.set(1.6, 1.6, 1); m.add(h); scene.add(m);
+  missiles.push({m, v:new THREE.Vector3(0, 0, -50), life:3.2}); sfx.missile();
+}
+
+/* ================= Story scenes ================= */
+const panelImgs = ART.panels || [];
+let cards = [], cardI = 0, capTimer = null, autoTimer = null, cineDone = null;
+function startCine(list, done){
+  initAudio(); cards = list; cineDone = done;
+  G.state = 'cine'; for(const s of ['#title','#jobs','#brief','#over']) show(s, false); show('#cine', true);
+  showCard(0);
+}
+function showCard(i){
+  cardI = i;
+  const c = cards[i], img = $('#cineImg'), face = $('#cineFace'), ph = $('#cinePh');
+  let src = '', dim = false;
+  if(typeof c.img === 'number') src = panelImgs[c.img] || '';
+  if(c.img === 'sky' || c.face || !src){ src = ART.skyline || ''; dim = !!c.face || typeof c.img === 'number'; }
+  img.className = 'cine-img' + (i % 2 ? ' alt' : '') + (dim ? ' dim' : '');
+  img.style.backgroundImage = src ? `url("${src}")` : 'none';
+  img.style.animation = 'none'; void img.offsetWidth; img.style.animation = '';
+  face.hidden = !c.face; if(c.face){ face.src = portraitURL[c.face]; face.style.setProperty('--c', SPEAKERS[c.face].c); }
+  ph.hidden = !(dim && !c.face); ph.textContent = c.ch;
+  $('#cineCh').textContent = c.ch; $('#cineCount').textContent = (i + 1) + ' / ' + cards.length;
+  $('#cineNext').textContent = i === cards.length - 1 ? 'Continue' : 'Next';
+  const cap = $('#cineCap'); cap.textContent = '';
+  clearInterval(capTimer); clearTimeout(autoTimer);
+  let n = 0;
+  capTimer = setInterval(() => { n++; cap.textContent = c.text.slice(0, n); if(n >= c.text.length){ clearInterval(capTimer); autoTimer = setTimeout(nextCard, 3600); } }, 22);
+  sfx.page();
+}
+function nextCard(){
+  if(G.state !== 'cine') return;
+  const cap = $('#cineCap'), c = cards[cardI];
+  if(cap.textContent.length < c.text.length){ clearInterval(capTimer); cap.textContent = c.text; clearTimeout(autoTimer); autoTimer = setTimeout(nextCard, 3600); return; }
+  if(cardI >= cards.length - 1){ endCine(); return; }
+  const f = $('#cineFade'); f.classList.add('on');
+  setTimeout(() => { showCard(cardI + 1); f.classList.remove('on'); }, 400);
+}
+function endCine(){
+  clearInterval(capTimer); clearTimeout(autoTimer);
+  G.state = 'title'; show('#cine', false);
+  const d = cineDone; cineDone = null; if(d) d();
+}
+$('#cine').addEventListener('click', e => { if(e.target.closest('button')) return; nextCard(); });
+$('#cineNext').addEventListener('click', nextCard);
+$('#cineSkip').addEventListener('click', endCine);
+
+/* ================= Save + flow ================= */
+function loadSave(){ try { return Object.assign({unlocked:0, best:{}, done:{}, seenPrologue:false}, JSON.parse(localStorage.getItem('lag.save') || '{}')); } catch(e) { return {unlocked:0, best:{}, done:{}, seenPrologue:false}; } }
+function writeSave(s){ try { localStorage.setItem('lag.save', JSON.stringify(s)); } catch(e) {} }
+let SAVE = loadSave();
+function renderTitle(){
+  const list = $('#missionList'); list.innerHTML = '';
+  MISSIONS.forEach((m, i) => {
+    const li = document.createElement('li'), b = document.createElement('button');
+    b.className = 'mission'; b.type = 'button'; b.disabled = i > SAVE.unlocked;
+    b.innerHTML = `<span class="mn">${m.n}</span><span><span class="mt">${m.name}</span><span class="ms">Chapter ${m.ch} · ${m.sub}</span></span><span class="mb">${SAVE.best[m.id] ? money(SAVE.best[m.id]) : (i > SAVE.unlocked ? 'Locked' : '')}</span>`;
+    b.addEventListener('click', () => { initAudio(); playMission(i); });
+    li.appendChild(b); list.appendChild(li);
+  });
+  const cont = $('#continueBtn');
+  if(!SAVE.seenPrologue) cont.textContent = 'New game';
+  else cont.textContent = 'Continue · ' + MISSIONS[Math.min(SAVE.unlocked, MISSIONS.length - 1)].name;
+}
+function toTitle(){
+  stopMusic(); clearAll(); G.state = 'title'; setEnv('city'); setShip('truck');
+  for(const s of ['#hud','#touch','#over','#paused','#brief','#jobs','#credits','#cine','#dropmark','#comms','#tip']) show(s, false);
+  show('#title', true); renderTitle();
+}
+function playMission(i){
+  CUR = i; M = MISSIONS[i];
+  setEnv(M.env); setShip(M.ship);
+  for(const s of ['#title','#over','#credits']) show(s, false);
+  if(M.contracts) show('#jobs', true); else openBrief();
+}
+function openBrief(){
+  $('#briefCard').classList.toggle('under', !!M.under);
+  $('#briefApp').textContent = M.app;
+  $('#briefSub').textContent = `Chapter ${M.ch} · Mission ${M.n}` + (M.contracts ? ' · ' + CONTRACTS[Number(document.querySelector('input[name="contract"]:checked').value)].name : '');
+  $('#briefTitle').textContent = M.name;
+  $('#briefList').innerHTML = M.brief.map(([c, i, html]) => `<li><span class="ico ${c}">${i}</span><span>${html}</span></li>`).join('');
+  $('#tipsOn').checked = !SAVE.done[M.id];
+  show('#jobs', false); show('#brief', true);
+}
+$('#continueBtn').addEventListener('click', () => {
+  initAudio();
+  if(!SAVE.seenPrologue){ startCine(PROLOGUE, () => { SAVE.seenPrologue = true; writeSave(SAVE); playMission(0); }); }
+  else playMission(Math.min(SAVE.unlocked, MISSIONS.length - 1));
+});
+$('#prologueBtn').addEventListener('click', () => startCine(PROLOGUE, () => { SAVE.seenPrologue = true; writeSave(SAVE); toTitle(); }));
+$('#acceptBtn').addEventListener('click', openBrief);
+$('#jobsBack').addEventListener('click', toTitle);
+$('#briefBack').addEventListener('click', () => { if(M.contracts){ show('#brief', false); show('#jobs', true); } else toTitle(); });
+$('#liftBtn').addEventListener('click', start);
+$('#resumeBtn').addEventListener('click', togglePause);
+$('#quitBtn').addEventListener('click', toTitle);
+$('#pauseBtn').addEventListener('click', togglePause);
+$('#muteBtn').addEventListener('click', () => { toggleMute(); $('#muteBtn').blur(); });
+$('#overTitleBtn').addEventListener('click', toTitle);
+$('#creditsBtn').addEventListener('click', toTitle);
+$('#overMain').addEventListener('click', () => {
+  if(lastWin){
+    const go = () => { if(CUR >= MISSIONS.length - 1){ show('#over', false); show('#credits', true); } else playMission(CUR + 1); };
+    if(M.after.length) startCine(M.after, go); else go();
+  } else playMission(CUR);
+});
+$('#overAlt').addEventListener('click', () => playMission(CUR));
+
+function start(){
+  initAudio();
+  clearAll(); freshState('play');
+  setEnv(M.env); setShip(M.ship);
+  T = []; buildTimeline(M.id, (t, f) => T.push([t, f]), {wave:spawnWave, ring:spawnRing, obs:spawnObstacle, chips:spawnChips, comm, tip, boss:spawnBoss});
+  T.sort((a, b) => a[0] - b[0]);
+  G.bossQ = M.bosses.slice();
+  G.tipsOn = $('#tipsOn').checked; tipQ = [];
+  commQ = []; commCur = null; show('#comms', false);
+  P.x = 0; P.y = 4; ship.visible = true;
+  show('#brief', false); show('#jobs', false); show('#over', false); show('#paused', false); show('#hud', true); show('#bossbar', false);
+  show('#touch', touchMode); show('#tMissile', M.ship === 'wild'); show('#missiles', M.ship === 'wild');
+  bassline = BASSLINES[M.music]; musicRoot = M.music === 'under' ? 49 : M.music === 'sim' ? 62 : 55; bpm = M.music === 'under' ? 132 : M.music === 'sim' ? 118 : 124;
+  if(document.activeElement) document.activeElement.blur();
+  startMusic();
+}
+function togglePause(){
+  if(G.state === 'play'){ G.state = 'paused'; show('#paused', true); stopMusic(); }
+  else if(G.state === 'paused'){ G.state = 'play'; show('#paused', false); startMusic(); if(document.activeElement) document.activeElement.blur(); }
+}
+document.addEventListener('visibilitychange', () => { if(document.hidden && G.state === 'play') togglePause(); });
+
+let lastWin = false;
+function endGame(win){
+  if(G.state !== 'play') return;
+  G.state = win ? 'win' : 'over'; lastWin = win;
+  stopMusic(); win ? sfx.win() : sfx.lose();
+  commQ = []; commCur = null; for(const s of ['#comms','#reels','#dropmark']) show(s, false);
+  const pay = Math.floor(G.pay);
+  let best = '';
+  if(win){
+    SAVE.unlocked = Math.max(SAVE.unlocked, Math.min(CUR + 1, MISSIONS.length - 1)); SAVE.done[M.id] = true;
+    if(pay > (SAVE.best[M.id] || 0)){ best = 'New best for this mission: ' + money(pay); SAVE.best[M.id] = pay; }
+    else best = 'Best on this mission: ' + money(SAVE.best[M.id]);
+    writeSave(SAVE);
+  } else if(SAVE.best[M.id]) best = 'Best on this mission: ' + money(SAVE.best[M.id]);
+  $('#overEyebrow').textContent = win ? `Mission ${M.n} complete` : `Mission ${M.n} failed`;
+  $('#overTitle').textContent = win ? M.name : (M.ship === 'truck' ? 'Cargo lost' : 'Wildcard down');
+  $('#overLine').textContent = win ? M.winLine : pick(["The House always wins. Tonight, anyway.", "Trey's still out there. Run it back.", "The board had you at long odds. Prove them wrong."]);
+  $('#stPay').textContent = money(pay);
+  const objLbl = M.goal === 'drops' ? 'Drops' : M.goal === 'nodes' ? 'Nodes' : 'Distance';
+  $('#stObjLbl').textContent = objLbl;
+  $('#stObj').textContent = M.goal === 'reach' ? (win ? 'Made it' : Math.round(Math.min(1, G.t/M.reachTime)*100) + '%') : G.dropsDone + ' / 4';
+  $('#stHits').textContent = G.hits; $('#stClose').textContent = G.close; $('#stBets').textContent = G.bets; $('#stBounty').textContent = money(G.peakBounty);
+  $('#overBest').textContent = best;
+  $('#overMain').textContent = win ? (CUR >= MISSIONS.length - 1 ? 'Watch the ending' : 'Continue the story') : 'Retry';
+  show('#overAlt', win);
+  $('#overAlt').textContent = 'Replay mission';
+  setTimeout(() => { show('#hud', false); show('#touch', false); show('#over', true); }, win ? 600 : 1500);
+}
+
+/* ================= Combat helpers ================= */
+function fireAt(from, tx, ty, speed){
+  const m = new THREE.Mesh(geo.eb, mat.eb); m.position.copy(from);
+  const halo = new THREE.Sprite(haloMat); halo.scale.set(2.4, 2.4, 1); m.add(halo); scene.add(m);
+  const v = new THREE.Vector3(tx - from.x, ty - from.y, -from.z).normalize().multiplyScalar(speed*(.9 + M.diff*.1));
+  eBullets.push({m, v, crossed:false});
+  tip('roll');
+}
+function burst(pos, color, n=14, spd=12){
+  if(parts.length > 260) return;
+  for(let i=0;i<n;i++){
+    const m = new THREE.Mesh(geo.part, basicMat(color)); m.position.copy(pos); scene.add(m);
+    const life = rand(.35, .8);
+    parts.push({m, v:new THREE.Vector3(rand(-1,1), rand(-1,1), rand(-1,1)).normalize().multiplyScalar(rand(spd*.3, spd)), life, max:life});
+  }
+}
+function damage(n){
+  if(G.state !== 'play' || G.dead || G.endT >= 0) return;
+  if(G.effects.snake) n *= 2;
+  G.shield -= n; G.luck = Math.max(0, G.luck - 12); G.combo = 0; G.mult = 1; G.shake = .5;
+  sfx.hurt();
+  const f = $('#flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 60);
+  if(G.shield <= 0){ G.shield = 0; G.dead = true; ship.visible = false; burst(ship.position, COL.amber, 40, 18); burst(ship.position, COL.cyan, 30, 14); sfx.boom(); endGame(false); }
+}
+function hitEnemy(e, j, dmg){
+  e.hp -= dmg; sfx.hit(); burst(e.m.position, COL.cyan, 4, 6);
+  if(e.hp <= 0) killEnemy(e, j);
+}
+function killEnemy(e, i){
+  burst(e.m.position, e.type === 'skimmer' ? COL.violet : e.type === 'cruiser' ? COL.red : COL.magenta, e.type === 'cruiser' ? 30 : 14);
+  sfx.boom();
+  G.combo++; G.comboT = 2.4; G.mult = Math.min(5, 1 + Math.floor(G.combo/5)); G.hits++;
+  payAdd(e.cash * G.mult);
+  if(G.combo >= 5 && G.combo % 5 === 0) addLuck(6, G.combo + ' streak');
+  if(Math.random() < (e.type === 'cruiser' ? 1 : .25)) addChip(e.m.position.x, e.m.position.y, e.m.position.z);
+  scene.remove(e.m); enemies.splice(i, 1);
+}
+function hitBoss(dmg){
+  const B = G.boss; B.hp -= dmg; B.flash = .08; sfx.hit();
+  if(B.hp <= B.max/2 && B.phase === 1){ B.phase = 2; comm(B.cfg.speaker, B.cfg.p2); }
+  if(B.hp <= 0) bossDown();
+}
+const bossHitTest = (p) => { const B = G.boss; return B && B.state === 'fight' && Math.abs(p.z - B.g.position.z) < 2.8 && Math.abs(p.x - B.g.position.x) < B.hw && Math.abs(p.y - B.g.position.y) < B.hh; };
+
+/* ================= Update ================= */
+function update(dt){
+  const playing = G.state === 'play';
+  const base = playing ? (M.ship === 'wild' ? 48 : 44) : (G.state === 'win' || G.state === 'over') ? 16 : 22;
+  G.boosting = playing && !G.dead && (keys.ShiftLeft || keys.ShiftRight || touchBoost) && G.boost > 4;
+  G.boost = G.boosting ? Math.max(0, G.boost - 36*dt) : Math.min(100, G.boost + 14*dt);
+  G.speedNow += (base*(G.boosting ? 1.55 : 1) - G.speedNow) * Math.min(1, dt*3);
+  const S = G.speedNow, tNow = performance.now();
+
+  // World scroll
+  if(worldCity.visible){
+    groundTex.offset.y += S*dt/(560/8);
+    for(const b of buildings){ b.position.z += S*dt; if(b.position.z > 30){ b.position.z -= CITY_SPAN; randomizeBuilding(b); } }
+    const blinkOn = Math.sin(tNow/400) > 0;
+    for(const l of blinkers) l.material = basicMat(blinkOn ? 0xdfe6ff : 0x2a2440);
+    for(const c of streetCars){ c.m.position.z += (S + c.v)*dt; if(c.m.position.z > 30) c.m.position.z -= 290; if(c.m.position.z < -260) c.m.position.z += 290; }
+    for(const c of skyCars){ c.m.position.z += (S + c.v)*dt; if(c.m.position.z > 30) c.m.position.z -= 290; if(c.m.position.z < -260) c.m.position.z += 290; }
+    if(ENV === 'sim' || ENV === 'collapse'){
+      const rate = ENV === 'collapse' ? 3 : 1;
+      if(Math.random() < dt*6*rate){ const b = pick(buildings); b.visible = !b.visible; }
+      G.glitchT -= dt;
+      if(G.glitchT <= 0 && Math.random() < dt*.6*rate){ canvas.classList.add('glitch'); G.glitchT = .12; setTimeout(() => canvas.classList.remove('glitch'), 120); }
+    }
+  }
+  if(worldTunnel.visible) for(const s of tunnelSegs){ s.position.z += S*dt; if(s.position.z > 28) s.position.z -= TSEG*TCOUNT; }
+  if(worldServers.visible){
+    for(const r of racks){ r.position.z += S*dt; if(r.position.z > 28) r.position.z -= RSEG*RCOUNT; }
+    serverFloor.material.map.offset.y += S*dt/6;
+  }
+  if(dome.visible && playing) dome.position.z = Math.min(-200, -360 + G.t*2.4);
+
+  if(hasTraffic()){ G.carT -= dt; if(G.carT <= 0){ spawnCar(); G.carT = playing ? rand(.6, 1.2) : rand(.5, .9); } }
+
+  if(playing){
+    G.t += dt;
+    while(G.ti < T.length && T[G.ti][0] <= G.t){ T[G.ti][1](); G.ti++; }
+    for(const k in G.effects){ G.effects[k] -= dt; if(G.effects[k] <= 0) delete G.effects[k]; }
+    if(G.comboT > 0){ G.comboT -= dt; if(G.comboT <= 0){ G.combo = 0; G.mult = 1; } }
+    G.masked = hasTraffic() && P.y < 2.6 && !G.dead;
+    if(G.masked) G.bounty = Math.max((M.bounty || 250)*.5, G.bounty - 90*dt); else if(!G.dead) G.bounty += 4*dt;
+    G.peakBounty = Math.max(G.peakBounty, G.bounty);
+    if(G.missileCD > 0) G.missileCD -= dt;
+    if(M.noBoss && G.t >= M.reachTime && G.endT < 0){ G.endT = 0; comm('trey', "We're out! We're OUT!"); }
+  }
+
+  // Ship
+  if(playing && !G.dead){
+    let ix = ((keys.ArrowRight || keys.KeyD) ? 1 : 0) - ((keys.ArrowLeft || keys.KeyA) ? 1 : 0);
+    let iy = ((keys.ArrowUp || keys.KeyW) ? 1 : 0) - ((keys.ArrowDown || keys.KeyS) ? 1 : 0);
+    if(stick.active){ ix = stick.x; iy = -stick.y; }
+    const agile = M.ship === 'wild' ? 1.15 : 1;
+    G.vx += (ix*16*agile - G.vx) * Math.min(1, dt*8*agile);
+    G.vy += (iy*12*agile - G.vy) * Math.min(1, dt*8*agile);
+    if(G.rollT > 0){ G.rollT -= dt; P.x += G.rollDir*11*dt; }
+    if(G.rollCD > 0) G.rollCD -= dt;
+    P.x = clamp(P.x + G.vx*dt, -9, 9); P.y = clamp(P.y + G.vy*dt, .9, 8);
+    G.fireCD -= dt;
+    if((keys.Space || keys.KeyJ || touchFire) && G.fireCD <= 0){
+      const wild = M.ship === 'wild';
+      G.fireCD = G.effects.cold ? .24 : wild ? .09 : .11;
+      const lanes = wild ? [-.7, .7] : [0];
+      const spreads = G.effects.triple ? [-16, 0, 16] : [0];
+      for(const sx of spreads) for(const lx of lanes){
+        const m = new THREE.Mesh(geo.pb, wild ? basicMat(0xff9ad0) : mat.pb); m.position.set(P.x + lx, P.y, -2.4); scene.add(m);
+        pBullets.push({m, vx:sx, vz:-160});
+      }
+      sfx.shoot();
+    }
+  } else if(G.state === 'title' || G.state === 'cine'){
+    P.x = Math.sin(tNow/1600)*3; P.y = 4 + Math.sin(tNow/1100); G.vx = Math.cos(tNow/1600)*3;
+  }
+  const rollAng = G.rollT > 0 ? -G.rollDir * (1 - G.rollT/.45) * Math.PI*2 : 0;
+  ship.position.set(P.x, P.y + Math.sin(tNow/180)*.05, 0);
+  ship.rotation.z = -G.vx*.045 + rollAng; ship.rotation.x = G.vy*.03;
+  activeRig.userData.flame.scale.set(1, (G.boosting ? 2.2 : 1) * rand(.85, 1.15), 1);
+  retNear.visible = retFar.visible = playing && !G.dead;
+  retNear.position.set(P.x, P.y, -14); retFar.position.set(P.x, P.y, -30);
+
+  // Player bullets
+  for(let i=pBullets.length-1;i>=0;i--){
+    const b = pBullets[i];
+    b.m.position.x += b.vx*dt; b.m.position.z += b.vz*dt;
+    let gone = b.m.position.z < -210;
+    if(!gone) for(let j=enemies.length-1;j>=0;j--){ const e = enemies[j]; if(b.m.position.distanceTo(e.m.position) < e.r + .5){ hitEnemy(e, j, 1); gone = true; break; } }
+    if(!gone && bossHitTest(b.m.position)){ gone = true; burst(b.m.position, COL.gold, 3, 6); hitBoss(1); }
+    if(gone){ scene.remove(b.m); pBullets.splice(i, 1); }
+  }
+  // Missiles: steer toward the nearest threat ahead
+  for(let i=missiles.length-1;i>=0;i--){
+    const ms = missiles[i], p = ms.m.position; ms.life -= dt;
+    let target = null, best = 1e9;
+    if(G.boss && G.boss.state === 'fight'){ target = G.boss.g.position; best = 0; }
+    if(!target) for(const e of enemies){ if(e.m.position.z < p.z + 5){ const d = e.m.position.distanceTo(p); if(d < best){ best = d; target = e.m.position; } } }
+    if(target){ const want = target.clone().sub(p).normalize().multiplyScalar(95); ms.v.lerp(want, Math.min(1, dt*4)); }
+    else ms.v.z = Math.max(ms.v.z - 80*dt, -95);
+    p.addScaledVector(ms.v, dt); ms.m.lookAt(p.clone().add(ms.v));
+    if(Math.random() < .5) burst(p, COL.magenta, 1, 2);
+    let hit = false;
+    for(let j=enemies.length-1;j>=0;j--){ const e = enemies[j]; if(p.distanceTo(e.m.position) < e.r + 1.2){ hitEnemy(e, j, 8); hit = true; break; } }
+    if(!hit && G.boss && G.boss.state === 'fight' && p.distanceTo(G.boss.g.position) < Math.max(G.boss.hw, 3)){ hitBoss(10); hit = true; }
+    if(hit){ burst(p, COL.magenta, 20, 12); sfx.boom(); }
+    if(hit || ms.life <= 0 || p.z < -240){ scene.remove(ms.m); missiles.splice(i, 1); }
+  }
+
+  // Enemies
+  for(let i=enemies.length-1;i>=0;i--){
+    const e = enemies[i], p = e.m.position; e.t += dt;
+    const prevZ = p.z;
+    if(e.type === 'drone'){
+      p.z += (S + 7)*dt; p.x += (P.x - p.x)*dt*.25; e.m.rotation.z = Math.sin(e.t*3)*.3;
+      if(p.z > -110 && playing) tip('drones');
+      if(!e.fired && p.z > -80 && playing){ e.fired = true; if(!G.masked) fireAt(p, P.x, P.y, 34); }
+    } else if(e.type === 'skimmer'){
+      p.z += (S + 4)*dt; p.x = e.baseX + Math.sin(e.t*2.8 + e.phase)*4.2; e.m.rotation.z += dt*4; e.m.rotation.y = Math.sin(e.t*2)*.5;
+    } else if(e.type === 'mine'){
+      p.z += (S - 6)*dt; p.x += (P.x - p.x)*dt*.5; p.y += (P.y - p.y)*dt*.4; e.m.rotation.z += dt*2; e.m.rotation.y += dt*1.5;
+    } else {
+      if(e.state === 'in'){ p.z += (S + 12)*dt; if(p.z >= -52){ e.state = 'hold'; e.holdT = 6; e.burstT = .8; } }
+      else if(e.state === 'hold'){
+        e.holdT -= dt; p.x += (P.x - p.x)*dt*.6; p.y += (Math.max(3, P.y) - p.y)*dt*.6;
+        e.burstT -= dt;
+        if(e.burstT <= 0 && playing){ e.burst = G.masked ? 0 : 3; e.burstT = 1.7 - (M.diff - 1)*.6; }
+        if(e.burst > 0){ e.burstGap = (e.burstGap || 0) - dt; if(e.burstGap <= 0){ fireAt(p, P.x + rand(-.6,.6), P.y + rand(-.4,.4), 38); e.burst--; e.burstGap = .14; } }
+        if(e.holdT <= 0) e.state = 'out';
+      } else { p.y += 9*dt; p.z -= 25*dt; if(p.y > 24){ scene.remove(e.m); enemies.splice(i, 1); continue; } }
+      const f2 = Math.sin(e.t*14) > 0; e.m.userData.lights[0].visible = f2; e.m.userData.lights[1].visible = !f2;
+    }
+    if(!e.crossed && prevZ < 0 && p.z >= 0){
+      e.crossed = true;
+      const d = Math.hypot(p.x - P.x, p.y - P.y);
+      if(d < e.r + .8){ damage(e.type === 'mine' ? 20 : 25); burst(p, COL.red, 16); scene.remove(e.m); enemies.splice(i, 1); continue; }
+      else if(d < e.r + 2.4){ G.close++; addLuck(6, 'close call'); }
+    }
+    if(p.z > 16){ scene.remove(e.m); enemies.splice(i, 1); }
+  }
+
+  // Enemy bullets
+  for(let i=eBullets.length-1;i>=0;i--){
+    const b = eBullets[i], p = b.m.position, prevZ = p.z;
+    p.addScaledVector(b.v, dt);
+    let gone = p.z > 16 || Math.abs(p.x) > 40 || p.y < -6 || p.y > 30;
+    if(!b.crossed && prevZ < 0 && p.z >= 0){
+      b.crossed = true;
+      const d = Math.hypot(p.x - P.x, p.y - P.y);
+      if(d < .95){ if(G.rollT > 0){ addLuck(4, 'deflected'); burst(p, COL.cyan, 8, 8); } else { damage(12); burst(p, COL.magenta, 8, 8); } gone = true; }
+      else if(d < 2.3){ G.close++; addLuck(5, 'grazed'); }
+    }
+    if(gone){ scene.remove(b.m); eBullets.splice(i, 1); }
+  }
+
+  // Sky lane traffic
+  for(let i=cars.length-1;i>=0;i--){
+    const c = cars[i], p = c.m.position, prevZ = p.z;
+    p.z += (S - c.speed)*dt;
+    if(!hasTraffic()) c.m.visible = false;
+    if(playing && !G.dead && c.m.visible && !c.crossed && prevZ < 0 && p.z >= 0){
+      c.crossed = true;
+      const ox = Math.abs(p.x - P.x) - 1.9, oy = Math.abs(p.y - P.y) - .7;
+      if(ox < 0 && oy < 0){ damage(15); burst(p, COL.red, 12, 9); popup('Clipped a car', 'bad'); }
+      else if(Math.max(ox, oy) < 1.0){ G.close++; addLuck(4, 'squeezed through'); }
+    }
+    if(p.z > 18){ scene.remove(c.m); cars.splice(i, 1); }
+  }
+
+  // Drop rings / access nodes
+  for(let i=rings.length-1;i>=0;i--){
+    const r = rings[i], prevZ = r.m.position.z;
+    r.m.position.z += S*dt; r.m.children[0].rotation.z += dt*1.5;
+    if(playing && !G.dead && !r.crossed && prevZ < 0 && r.m.position.z >= 0){
+      r.crossed = true;
+      const node = M.goal === 'nodes';
+      if(Math.hypot(P.x - r.x, P.y - r.y) < 2.1){
+        G.dropsDone++; sfx.drop(); addLuck(8);
+        payAdd(node ? 400 : (G.contract ? G.contract.pay/4 : 120), (node ? 'node ' : 'drop ') + r.n + ' of 4');
+        burst(r.m.position, node ? COL.cyan : COL.gold, 24, 10);
+      } else { popup((node ? 'Missed node ' : 'Missed drop ') + r.n, 'bad'); sfx.hurt(); if(node){ setTimeout(() => { if(G.state === 'play' && G.endT < 0) spawnRing(); }, 2500); } }
+    }
+    if(r.m.position.z > 18){ scene.remove(r.m); rings.splice(i, 1); }
+  }
+  const nextRing = rings.find(r => !r.crossed && r.m.position.z < 0), dm = $('#dropmark');
+  if(playing && nextRing && !G.dead){
+    const sc = 1 + Math.sin(tNow/180)*.08; nextRing.m.children[0].scale.set(sc, sc, sc);
+    const v = nextRing.m.position.clone(); v.y += 3; v.project(camera);
+    const sx = clamp((v.x + 1)/2*innerWidth, 70, innerWidth - 70), sy = clamp((1 - v.y)/2*innerHeight, 120, innerHeight - 60);
+    dm.style.left = sx + 'px'; dm.style.top = sy + 'px'; dm.classList.toggle('node', M.goal === 'nodes');
+    setT($('#dropText'), (M.goal === 'nodes' ? 'NODE ' : 'DROP ') + nextRing.n + ' · ' + Math.round(-nextRing.m.position.z*4) + 'm');
+    dm.hidden = false;
+    if(nextRing.m.position.z > -160) tip('drop');
+  } else dm.hidden = true;
+
+  // Cash chips
+  for(let i=chips.length-1;i>=0;i--){
+    const c = chips[i], p = c.m.position;
+    p.z += S*dt; c.m.rotation.z += dt*5;
+    if(playing && !G.dead){
+      const dx = P.x - p.x, dy = P.y - p.y, dz = -p.z, d = Math.hypot(dx, dy, dz);
+      if(d < 4.5 && d > .01){ const pull = 14*dt/d; p.x += dx*pull; p.y += dy*pull; }
+      if(d < 1.6){ payAdd(10); sfx.cash(); scene.remove(c.m); chips.splice(i, 1); continue; }
+    }
+    if(p.z > 16){ scene.remove(c.m); chips.splice(i, 1); }
+  }
+
+  // Obstacles
+  for(let i=obstacles.length-1;i>=0;i--){
+    const o = obstacles[i], prevZ = o.m.position.z;
+    o.m.position.z += S*dt;
+    if(playing && o.m.position.z > -110) tip('obstacle');
+    if(playing && !G.dead && !o.crossed && prevZ < 0 && o.m.position.z >= 0){
+      o.crossed = true;
+      let hit = false, near = false;
+      if(o.type === 'gate'){ const off = Math.abs(P.x - o.gap) - (o.gw/2 - .9); hit = off > 0; near = !hit && off > -1.2; }
+      else {
+        const ox = Math.abs(P.x - o.x) - (o.hw + .9), oy = o.type === 'tower' ? P.y - (o.top + .35) : Math.abs(P.y - o.y) - (o.hh + .35);
+        hit = ox < 0 && oy < 0; near = !hit && Math.max(ox, oy) < 1.3;
+      }
+      if(hit){ damage(30); burst(ship.position, COL.gold, 18, 10); popup({bill:'Ate a billboard', tower:'Clipped a rooftop', gate:'Hit the gate', pipe:'Hit a pipe'}[o.type] || 'Hit the skyway', 'bad'); }
+      else if(near){ G.close++; addLuck(10, o.type === 'tower' ? 'skimmed the roof' : 'threaded it'); }
+    }
+    if(o.m.position.z > 24){ scene.remove(o.m); obstacles.splice(i, 1); }
+  }
+
+  // Boss
+  const B = G.boss;
+  if(B){
+    B.t += dt;
+    const pos = B.g.position, fast = B.phase === 2;
+    if(B.cfg.shape === 'gunship') B.rotor.rotation.y += dt*(fast ? 26 : 18); else B.rotor.rotation.z += dt*(fast ? 1.6 : .8);
+    if(B.cfg.shape === 'crown') B.g.rotation.y += dt*.4;
+    if(B.state === 'enter'){
+      pos.x += (0 - pos.x)*dt*1.2; pos.y += (6 - pos.y)*dt*1.2; pos.z += (-44 - pos.z)*dt*1.2;
+      if(Math.abs(pos.z + 44) < 1.5){ B.state = 'fight'; B.t = 0; tip('boss'); }
+    } else if(B.state === 'fight'){
+      pos.x = Math.sin(B.t*(fast ? .8 : .55))*6.5; pos.y = 5.6 + Math.sin(B.t*1.3)*1.4; pos.z = -44 + Math.sin(B.t*.4)*4;
+      if(B.cfg.shape === 'gunship') B.g.rotation.z = -Math.cos(B.t*.55)*.15;
+      if(playing && !G.dead){
+        const d = M.diff;
+        B.fireT -= dt;
+        if(B.fireT <= 0){
+          const n = (fast ? 7 : 5) + (d > 1.4 ? 2 : 0);
+          for(let k=0;k<n;k++) fireAt(new THREE.Vector3(pos.x, pos.y - .5, pos.z + 2), P.x + (k - (n-1)/2)*2.4, P.y, 28);
+          B.fireT = (fast ? 1.25 : 1.8) / Math.sqrt(d);
+        }
+        if(fast){ B.burstT -= dt; if(B.burstT <= 0){ for(let k=0;k<3;k++) setTimeout(() => { if(G.boss === B && B.state === 'fight' && G.state === 'play') fireAt(new THREE.Vector3(pos.x, pos.y, pos.z + 2), P.x, P.y, 40); }, k*130); B.burstT = 2.4 / Math.sqrt(d); } }
+        B.droneT -= dt;
+        if(B.droneT <= 0){ const t = ENV === 'tunnel' ? 'mine' : 'drone'; addEnemy(t, pos.x - 3, pos.y, pos.z); addEnemy(t, pos.x + 3, pos.y, pos.z); B.droneT = fast ? 5 : 7.5; }
+      }
+    } else if(B.state === 'retreat'){
+      B.rt += dt; pos.y += dt*(4 + B.rt*6); pos.z -= dt*30; B.g.rotation.z += dt*.8;
+      if(Math.random() < dt*10) burst(new THREE.Vector3(pos.x + rand(-3,3), pos.y + rand(-1,1), pos.z), pick([0x6a5a7a, COL.red, COL.gold]), 6, 6);
+      if(pos.y > 60) B.g.visible = false;
+    } else if(B.state === 'dying'){
+      B.dieT += dt; pos.y -= dt*3; B.g.rotation.z += dt*1.5;
+      if(Math.random() < dt*14) burst(new THREE.Vector3(pos.x + rand(-3,3), pos.y + rand(-2,2), pos.z + rand(-2,2)), pick([COL.gold, COL.red, COL.magenta, COL.orange]), 10, 12);
+      if(B.dieT > 2.2 && B.g.visible){ B.g.visible = false; burst(pos, COL.gold, 60, 22); burst(pos, COL.magenta, 40, 18); sfx.boom(); G.shake = .9; }
+    }
+    if(B.body && B.body.material && B.body.material.emissive){ if(B.flash > 0){ B.flash -= dt; B.body.material.emissive.setHex(0xff6a2a); } else B.body.material.emissive.setHex(B.cfg.shape === 'crown' ? 0x6a4a10 : 0x2a0808); }
+    else if(B.flash > 0) B.flash -= dt;
+  }
+  if(G.endT >= 0 && playing){ G.endT += dt; if(G.endT > 9) endGame(true); }
+
+  // Particles
+  for(let i=parts.length-1;i>=0;i--){
+    const q = parts[i]; q.life -= dt;
+    q.m.position.addScaledVector(q.v, dt); q.m.position.z += S*dt*.3; q.m.scale.setScalar(Math.max(.01, q.life/q.max));
+    if(q.life <= 0){ scene.remove(q.m); parts.splice(i, 1); }
+  }
+
+  updateComms(dt);
+
+  // Camera
+  const k = Math.min(1, dt*5);
+  camera.position.x += (P.x*.55 - camera.position.x)*k;
+  camera.position.y += (P.y*.5 + (M.ship === 'wild' ? 3.4 : 4.1) - camera.position.y)*k;
+  camera.position.z = 10;
+  const targetFov = baseFov + (G.boosting ? 8 : 0);
+  if(Math.abs(camera.fov - targetFov) > .05){ camera.fov += (targetFov - camera.fov)*k; camera.updateProjectionMatrix(); }
+  camera.lookAt(P.x*.7, P.y*.45 - .6, -25);
+  if(G.shake > 0){ G.shake -= dt; camera.position.x += rand(-1,1)*G.shake*.5; camera.position.y += rand(-1,1)*G.shake*.5; }
+  if(skyline) skyline.position.x = camera.position.x*.9;
+
+  if(playing) hud();
+}
+
+/* ================= HUD ================= */
+const H = {shield:$('#shieldFill'), boost:$('#boostFill'), hits:$('#hits'), pay:$('#pay'), bounty:$('#bounty'), obj:$('#obj'),
+  pips:[$('#pip1'), $('#pip2'), $('#pip3')], luck:$('#luckFill'), luckBar:$('#luckBar'), pct:$('#luckPct'), hint:$('#oddsHint'),
+  fx:$('#effects'), boss:$('#bossFill'), status:$('#status'), bet:$('#tBet'), miss:$('#missiles')};
+let lastFx = '', lastMiss = -1;
+const FX_NAMES = {triple:['Triple fire', false], double:['Double pay', false], snake:['Double damage', true], cold:['Slow fire', true]};
+function hud(){
+  H.shield.style.width = G.shield + '%'; H.shield.classList.toggle('low', G.shield < 30);
+  H.boost.style.width = G.boost + '%';
+  setT(H.hits, String(G.hits).padStart(3, '0')); setT(H.pay, money(G.pay)); setT(H.bounty, money(G.bounty));
+  const tr = tier(); H.pips.forEach((p, i) => p.classList.toggle('on', i < tr));
+  let obj;
+  if(M.goal === 'drops') obj = 'Drops ' + G.dropsDone + ' / 4';
+  else if(M.goal === 'nodes') obj = 'Nodes ' + G.dropsDone + ' / 4';
+  else if(G.boss) obj = 'Boss fight';
+  else obj = M.reachLabel + ' · ' + (Math.max(0, M.reachTime - G.t)*.045).toFixed(1) + ' km';
+  setT(H.obj, obj);
+  H.status.hidden = !G.masked;
+  H.luck.style.width = G.luck + '%'; setT(H.pct, Math.floor(G.luck) + '%');
+  const ready = G.luck >= 25 && !G.reeling && !G.dead;
+  H.luckBar.classList.toggle('ready', ready); H.hint.classList.toggle('ready', ready); H.bet.hidden = !ready;
+  setT(H.hint, ready ? (touchMode ? 'Tap Bet · ' : 'R to bet · ') + Math.round(winOdds(G.luck)*100) + '% to win' : G.reeling ? 'Reels spinning' : 'Need 25% to bet');
+  let fx = ''; for(const key in G.effects){ const [n, bad] = FX_NAMES[key]; fx += '<div class="fx' + (bad ? ' bad' : '') + '">' + n + ' · ' + Math.ceil(G.effects[key]) + 's</div>'; }
+  if(fx !== lastFx){ H.fx.innerHTML = fx; lastFx = fx; }
+  if(G.missiles !== lastMiss){ lastMiss = G.missiles; H.miss.innerHTML = 'Missiles ' + [0,1,2,3].map(i => `<i class="${i < G.missiles ? '' : 'used'}"></i>`).join(''); }
+  if(G.boss) H.boss.style.width = Math.max(0, G.boss.hp/G.boss.max*100) + '%';
+}
+
+/* ================= Loop ================= */
+freshState('title'); setEnv('city'); setShip('truck'); renderTitle();
+let last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, (now - last)/1000); last = now;
+  if(G.state !== 'paused' && G.state !== 'tip') update(dt);
+  if(composer) composer.render(); else renderer.render(scene, camera);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
