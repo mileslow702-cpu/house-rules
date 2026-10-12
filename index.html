@@ -418,7 +418,7 @@ body.touch #reels{top:calc(var(--safe-t) + 280px)}
   </div>
 </section>
 
-<script>window.ART={"skyRatio": 0.3661616161616162, "skyline": "assets/skyline.jpg", "panels": ["assets/panels/panel-1.jpg", "assets/panels/panel-2.jpg", "assets/panels/panel-3.jpg", "assets/panels/panel-4.jpg", "assets/panels/panel-5.jpg", "assets/panels/panel-6.jpg", "assets/panels/panel-7.jpg", "assets/panels/panel-8.jpg", "assets/panels/panel-9.jpg"], "portraits": {"deuce": "assets/portraits/deuce.jpg", "jamie": "assets/portraits/jamie.jpg", "hunter": "assets/portraits/hunter.jpg", "trey": "assets/portraits/trey.jpg"}, "models": {"truck": "assets/models/truck.glb", "drone": "assets/models/drone.glb"}, "cards": ["assets/cards/card-1.jpg"]};</script>
+<script>window.ART={"skyRatio": 0.3661616161616162, "skyline": "assets/skyline.jpg", "panels": ["assets/panels/panel-1.jpg", "assets/panels/panel-2.jpg", "assets/panels/panel-3.jpg", "assets/panels/panel-4.jpg", "assets/panels/panel-5.jpg", "assets/panels/panel-6.jpg", "assets/panels/panel-7.jpg", "assets/panels/panel-8.jpg", "assets/panels/panel-9.jpg"], "portraits": {"deuce": "assets/portraits/deuce.jpg", "jamie": "assets/portraits/jamie.jpg", "hunter": "assets/portraits/hunter.jpg", "trey": "assets/portraits/trey.jpg"}, "models": {"truck": "assets/models/truck.glb", "drone": "assets/models/drone.glb", "crown": "assets/models/crown.glb", "wildcard": "assets/models/wildcard.glb", "cruiser": "assets/models/cruiser.glb", "gunship": "assets/models/gunship.glb"}, "cards": ["assets/cards/card-1.jpg"]};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
@@ -678,8 +678,8 @@ let activeRig = truckRig;
 function setShip(kind){ truckRig.visible = kind === 'truck'; wildRig.visible = kind === 'wild'; activeRig = kind === 'wild' ? wildRig : truckRig; }
 
 let droneModel = null;
-function nightReady(root){
-  root.traverse(o => { if(o.isMesh && o.material && o.material.map){ const m = o.material; m.emissive = new THREE.Color(0xffffff); m.emissiveMap = m.map; m.emissiveIntensity = .38; m.needsUpdate = true; } });
+function nightReady(root, glow = .38){
+  root.traverse(o => { if(o.isMesh && o.material && o.material.map){ const m = o.material; m.emissive = new THREE.Color(0xffffff); m.emissiveMap = m.map; m.emissiveIntensity = glow; m.needsUpdate = true; } });
   return root;
 }
 function loadModel(src, cb){
@@ -696,7 +696,7 @@ loadModel((ART.models || {}).truck, gltf => {
 });
 loadModel((ART.models || {}).drone, gltf => { droneModel = nightReady(gltf.scene); droneModel.scale.setScalar(1.1); });
 // Higgsfield 3D models for the rest of the cast. yaw turns each model so its nose points down the flight path.
-const MODEL_FIT = {wildcard:{len:4.2, yaw:0}, gunship:{len:8.5, yaw:0}, cruiser:{len:5.4, yaw:0}, crown:{len:10, yaw:0}};
+const MODEL_FIT = {wildcard:{len:4.3, yaw:-Math.PI/2, glow:.38}, gunship:{len:21, yaw:Math.PI/2 + .55, glow:1.0}, cruiser:{len:7.6, yaw:Math.PI/2 + .4, glow:.95}, crown:{len:14, yaw:0, glow:.55}};
 const MODELS = {};
 function fitModel(root, len, yaw){
   const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), mid = box.getCenter(new THREE.Vector3());
@@ -706,13 +706,13 @@ function fitModel(root, len, yaw){
   const wrap = new THREE.Group(); wrap.add(g); return wrap;
 }
 for(const key in MODEL_FIT) loadModel((ART.models || {})[key], gltf => {
-  MODELS[key] = fitModel(nightReady(gltf.scene), MODEL_FIT[key].len, MODEL_FIT[key].yaw);
+  MODELS[key] = fitModel(nightReady(gltf.scene, MODEL_FIT[key].glow), MODEL_FIT[key].len, MODEL_FIT[key].yaw);
   if(key === 'wildcard'){
     wildRig.children.forEach(c => { if(c !== wildRig.userData.flame) c.visible = false; });
     wildRig.add(MODELS.wildcard);
   }
 });
-function modelMats(root){ const out = []; root.traverse(o => { if(o.isMesh && o.material && o.material.emissive){ o.material = o.material.clone(); out.push(o.material); } }); return out; }
+function modelMats(root){ const out = []; root.traverse(o => { if(o.isMesh && o.material && o.material.emissive){ o.material = o.material.clone(); o.material.userData.base = o.material.emissiveIntensity; out.push(o.material); } }); return out; }
 
 const retTex = canvasTex(128, 128, (g) => {
   g.strokeStyle = '#7dff8a'; g.lineWidth = 7; g.shadowColor = '#7dff8a'; g.shadowBlur = 8;
@@ -752,7 +752,6 @@ const darkSide = new THREE.MeshLambertMaterial({color:0x1b1131});
 const lockTex = canvasTex(128, 128, (g) => {
   g.strokeStyle = '#ff2a2a'; g.lineWidth = 10; g.shadowColor = '#ff2a2a'; g.shadowBlur = 10;
   [[10,10,1,1],[118,10,-1,1],[10,118,1,-1],[118,118,-1,-1]].forEach(([x,y,dx,dy]) => { g.beginPath(); g.moveTo(x, y + dy*36); g.lineTo(x, y); g.lineTo(x + dx*36, y); g.stroke(); });
-  g.fillStyle = '#ff2a2a'; g.beginPath(); g.arc(64, 64, 6, 0, Math.PI*2); g.fill();
 });
 const lockMat = new THREE.SpriteMaterial({map:lockTex, transparent:true, depthTest:false, depthWrite:false, sizeAttenuation:false, fog:false});
 function addLock(m, s){ const sp = new THREE.Sprite(lockMat); sp.scale.set(s, s, 1); sp.renderOrder = 10; m.add(sp); }
@@ -1233,9 +1232,7 @@ function addEnemy(type, x, y, z, extra={}){
   } else if(MODELS.cruiser){
     m = new THREE.Group();
     m.add(MODELS.cruiser.clone());
-    const lr = new THREE.Mesh(unitBox, basicMat(COL.red)); lr.scale.set(.8, .18, .3); lr.position.set(-.5, 1.15, 0); m.add(lr);
-    const lb = new THREE.Mesh(unitBox, basicMat(COL.blue)); lb.scale.set(.8, .18, .3); lb.position.set(.5, 1.15, 0); m.add(lb);
-    m.userData.lights = [lr, lb];
+    m.userData.lights = [new THREE.Object3D(), new THREE.Object3D()];
     r = 2.0; hp = 5; cash = 120;
   } else {
     m = new THREE.Group();
@@ -1343,12 +1340,12 @@ function buildBoss(cfg){
     const mats = modelMats(mdl);
     if(cfg.color !== COL.red) mats.forEach(m => m.color.lerp(new THREE.Color(cfg.color), .45));
     const disc = new THREE.Mesh(new THREE.CircleGeometry(5.5, 32), new THREE.MeshBasicMaterial({color:0xb0a8d0, transparent:true, opacity:.12, side:THREE.DoubleSide, depthWrite:false}));
-    disc.rotation.x = -Math.PI/2; rotor.add(disc); rotor.position.y = 2.2; g.add(rotor);
-    body = {flashMats:mats};
+    disc.rotation.x = -Math.PI/2; disc.scale.setScalar(1.4); rotor.add(disc); rotor.position.y = 4.2; g.add(rotor);
+    body = {flashMats:mats}; hw = 8; hh = 4;
   } else if(cfg.shape === 'crown' && MODELS.crown){
     const mdl = MODELS.crown.clone(); g.add(mdl);
     const core = new THREE.Mesh(new THREE.SphereGeometry(1.6, 20, 14), new THREE.MeshBasicMaterial({color:COL.magenta, transparent:true, opacity:.55})); rotor.add(core); g.add(rotor);
-    body = {flashMats:modelMats(mdl)}; hw = 5.5; hh = 3.5;
+    body = {flashMats:modelMats(mdl)}; hw = 6.5; hh = 5.5;
   } else if(cfg.shape === 'gunship'){
     const shell = new THREE.MeshLambertMaterial({color:0x1d1426, emissive:0x2a0808});
     body = new THREE.Mesh(unitBox, shell); body.scale.set(6, 1.9, 4.2); g.add(body);
@@ -1374,7 +1371,7 @@ function buildBoss(cfg){
     const core = new THREE.Mesh(new THREE.SphereGeometry(2, 20, 14), basicMat(COL.magenta)); core.position.y = .3; rotor.add(core); g.add(rotor);
     hw = 5.5; hh = 3;
   }
-  addLock(g, .32);
+  addLock(g, cfg.shape === 'gunship' && MODELS.gunship ? .45 : .32);
   return {g, body, rotor, hw, hh};
 }
 function spawnBoss(){
@@ -1926,7 +1923,7 @@ function update(dt){
       if(Math.random() < dt*14) burst(new THREE.Vector3(pos.x + rand(-3,3), pos.y + rand(-2,2), pos.z + rand(-2,2)), pick([COL.gold, COL.red, COL.magenta, COL.orange]), 10, 12);
       if(B.dieT > 2.2 && B.g.visible){ B.g.visible = false; burst(pos, COL.gold, 60, 22); burst(pos, COL.magenta, 40, 18); sfx.boom(); G.shake = .9; }
     }
-    if(B.body && B.body.flashMats){ const on = B.flash > 0; if(on) B.flash -= dt; B.body.flashMats.forEach(m => { m.emissiveIntensity = on ? .6 : .38; }); }
+    if(B.body && B.body.flashMats){ const on = B.flash > 0; if(on) B.flash -= dt; B.body.flashMats.forEach(m => { m.emissiveIntensity = m.userData.base + (on ? .3 : 0); }); }
     else if(B.body && B.body.material && B.body.material.emissive){ if(B.flash > 0){ B.flash -= dt; B.body.material.emissive.setHex(0x4a1c10); } else B.body.material.emissive.setHex(B.cfg.shape === 'crown' ? 0x6a4a10 : 0x2a0808); }
     else if(B.flash > 0) B.flash -= dt;
   }
