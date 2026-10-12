@@ -43,7 +43,7 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);o
 .hud-tl{position:absolute;left:16px;top:calc(var(--safe-t) + 14px);width:min(240px,44vw);display:grid;gap:4px}
 .shield{height:16px;border:2px solid #0b0616;outline:1px solid var(--line);background:rgba(0,0,0,.55);position:relative;overflow:hidden;transform:skewX(-16deg)}
 .shield i{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(180deg,#fff1a8,var(--gold) 45%,var(--orange));transition:width .15s}
-.shield i.low{background:linear-gradient(180deg,#ffb3ba,var(--danger));animation:blink .5s steps(2) infinite}
+.shield i.low{background:linear-gradient(180deg,#ffb3ba,var(--danger))}
 .hits{display:flex;align-items:flex-end;gap:6px;margin-top:2px}
 .hits b{font-family:var(--display);font-weight:400;font-style:italic;font-size:clamp(30px,6vw,44px);line-height:.9;color:var(--cyan);font-variant-numeric:tabular-nums;text-shadow:2px 2px 0 #0b0616,0 0 14px rgba(63,240,255,.45)}
 .hits span{font-family:var(--display);font-size:11px;letter-spacing:.1em;color:var(--cyan);padding-bottom:4px}
@@ -70,7 +70,7 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);o
 .oddshead{display:flex;align-items:baseline;gap:10px}
 .oddshead .pct{font-family:var(--display);font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums}
 .oddshint{margin-left:auto;font-family:var(--display);font-size:11px;letter-spacing:.06em;color:var(--dim)}
-.oddshint.ready{color:var(--gold);animation:blink 1s steps(2) infinite}
+.oddshint.ready{color:var(--gold)}
 .luck{position:relative;height:14px;border:1px solid var(--line);background:repeating-linear-gradient(90deg,rgba(0,0,0,.55) 0 calc(5% - 2px),rgba(255,194,61,.08) calc(5% - 2px) 5%)}
 .luck i{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,var(--gold),var(--magenta));transition:width .12s}
 .luck .minbet{position:absolute;left:25%;top:-5px;bottom:-5px;width:2px;background:var(--ink);opacity:.7}
@@ -101,7 +101,7 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);o
 #reelLabel{font-family:var(--display);font-size:13px;margin-top:8px;letter-spacing:.05em;min-height:1.2em}
 #reelLabel.win{color:var(--gold)}
 #reelLabel.lose{color:var(--danger)}
-#flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(255,40,70,.55));opacity:0;transition:opacity .3s}
+#flash{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,40,70,.3));opacity:0;transition:opacity .3s}
 #flash.on{opacity:1;transition:none}
 .tip{position:fixed;inset:0;z-index:15;background:rgba(6,3,14,.55);display:grid;place-items:center;padding:calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 16px)}
 .tipcard{width:min(400px,100%);background:#0d0a14;border:2px solid var(--gold);padding:18px 18px 16px;display:grid;gap:8px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
@@ -111,7 +111,7 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--body);o
 .tipbody dl{margin:0;display:grid;gap:8px}
 .tipbody dt{font-family:var(--display);font-size:12px;letter-spacing:.08em}
 .tipbody dd{margin:2px 0 0;color:var(--dim);font-size:14px}
-.tiphint{margin:4px 0 0;font-family:var(--display);font-size:11px;letter-spacing:.1em;color:var(--dim);animation:blink 1.2s steps(2) infinite}
+.tiphint{margin:4px 0 0;font-family:var(--display);font-size:11px;letter-spacing:.1em;color:var(--dim)}
 .tip-focus{box-shadow:0 0 0 3px var(--gold),0 0 26px rgba(255,194,61,.8);animation:focus 1s ease-in-out infinite}
 @keyframes focus{50%{box-shadow:0 0 0 6px var(--gold),0 0 36px rgba(255,194,61,.9)}}
 #dropmark{position:fixed;left:0;top:0;transform:translate(-50%,-100%);pointer-events:none;display:grid;justify-items:center;gap:2px}
@@ -418,7 +418,7 @@ body.touch #reels{top:calc(var(--safe-t) + 280px)}
   </div>
 </section>
 
-<script>window.ART={"skyRatio": 0.3661616161616162, "skyline": "assets/skyline.jpg", "panels": ["assets/panels/panel-1.jpg", "assets/panels/panel-2.jpg", "assets/panels/panel-3.jpg", "assets/panels/panel-4.jpg", "assets/panels/panel-5.jpg", "assets/panels/panel-6.jpg", "assets/panels/panel-7.jpg", "assets/panels/panel-8.jpg", "assets/panels/panel-9.jpg"], "portraits": {"deuce": "assets/portraits/deuce.jpg", "jamie": "assets/portraits/jamie.jpg", "hunter": "assets/portraits/hunter.jpg", "trey": "assets/portraits/trey.jpg"}, "models": {"truck": "assets/models/truck.glb", "drone": "assets/models/drone.glb"}, "sprites": {"gunship": "assets/sprites/gunship.webp", "warden": "assets/sprites/warden.webp", "cruiser": "assets/sprites/cruiser.webp", "crown": "assets/sprites/crown.webp"}, "cards": ["assets/cards/card-1.jpg"]};</script>
+<script>window.ART={"skyRatio": 0.3661616161616162, "skyline": "assets/skyline.jpg", "panels": ["assets/panels/panel-1.jpg", "assets/panels/panel-2.jpg", "assets/panels/panel-3.jpg", "assets/panels/panel-4.jpg", "assets/panels/panel-5.jpg", "assets/panels/panel-6.jpg", "assets/panels/panel-7.jpg", "assets/panels/panel-8.jpg", "assets/panels/panel-9.jpg"], "portraits": {"deuce": "assets/portraits/deuce.jpg", "jamie": "assets/portraits/jamie.jpg", "hunter": "assets/portraits/hunter.jpg", "trey": "assets/portraits/trey.jpg"}, "models": {"truck": "assets/models/truck.glb", "drone": "assets/models/drone.glb"}, "cards": ["assets/cards/card-1.jpg"]};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
@@ -460,7 +460,7 @@ let composer = null;
 if(hasBloom){
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(new THREE.RenderPass(scene, camera));
-  composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(512, 512), .8, .45, .72));
+  composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(512, 512), .5, .4, .82));
 }
 let baseFov = 66;
 function resize(){
@@ -523,7 +523,7 @@ function makeBuilding(col){
   const main = new THREE.Mesh(unitBox, mat), top = new THREE.Mesh(unitBox, mat);
   const band = new THREE.Mesh(unitBox, basicMat(COL.blue)), sign = new THREE.Mesh(unitBox, basicMat(COL.blue));
   const crown = new THREE.Mesh(unitBox, basicMat(COL.blue)), mast = new THREE.Mesh(unitBox, basicMat(0x3a2f55));
-  const light = new THREE.Mesh(new THREE.SphereGeometry(.45, 8, 6), basicMat(0xdfe6ff));
+  const light = new THREE.Mesh(new THREE.SphereGeometry(.45, 8, 6), basicMat(0x7a7fa8));
   b.add(main, top, band, sign, crown, mast, light);
   b.userData = {col, tex, mat, main, top, band, sign, crown, mast, light};
   blinkers.push(light);
@@ -712,17 +712,6 @@ for(const key in MODEL_FIT) loadModel((ART.models || {})[key], gltf => {
     wildRig.add(MODELS.wildcard);
   }
 });
-const spriteTex = {};
-function artSprite(key, width){
-  const src = (ART.sprites || {})[key]; if(!src) return null;
-  const tex = spriteTex[key] || (spriteTex[key] = new THREE.TextureLoader().load(src));
-  const m = new THREE.SpriteMaterial({map:tex, transparent:true, depthWrite:false});
-  const sp = new THREE.Sprite(m);
-  const setSize = () => { const im = tex.image; if(im && im.width) sp.scale.set(width, width*im.height/im.width, 1); };
-  sp.scale.set(width, width*.6, 1); if(tex.image) setSize(); else tex.onUpdate = setSize;
-  const probe = new Image(); probe.onload = () => sp.scale.set(width, width*probe.height/probe.width, 1); probe.src = src;
-  return sp;
-}
 function modelMats(root){ const out = []; root.traverse(o => { if(o.isMesh && o.material && o.material.emissive){ o.material = o.material.clone(); out.push(o.material); } }); return out; }
 
 const retTex = canvasTex(128, 128, (g) => {
@@ -1248,11 +1237,6 @@ function addEnemy(type, x, y, z, extra={}){
     const lb = new THREE.Mesh(unitBox, basicMat(COL.blue)); lb.scale.set(.8, .18, .3); lb.position.set(.5, 1.15, 0); m.add(lb);
     m.userData.lights = [lr, lb];
     r = 2.0; hp = 5; cash = 120;
-  } else if((ART.sprites || {}).cruiser){
-    m = new THREE.Group();
-    m.add(artSprite('cruiser', 6.2));
-    m.userData.lights = [new THREE.Object3D(), new THREE.Object3D()];
-    r = 2.0; hp = 5; cash = 120;
   } else {
     m = new THREE.Group();
     const b = new THREE.Mesh(unitBox, mat.limo); b.scale.set(3, .9, 5.2); m.add(b);
@@ -1365,16 +1349,6 @@ function buildBoss(cfg){
     const mdl = MODELS.crown.clone(); g.add(mdl);
     const core = new THREE.Mesh(new THREE.SphereGeometry(1.6, 20, 14), new THREE.MeshBasicMaterial({color:COL.magenta, transparent:true, opacity:.55})); rotor.add(core); g.add(rotor);
     body = {flashMats:modelMats(mdl)}; hw = 5.5; hh = 3.5;
-  } else if(cfg.shape === 'gunship' && (ART.sprites || {}).gunship){
-    const warden = cfg.color === COL.teal;
-    const sp = artSprite(warden ? 'warden' : 'gunship', 15); g.add(sp);
-    const base = warden ? 0xb8fff4 : 0xffffff; sp.material.color.setHex(base);
-    body = {flashSprite:sp.material, base}; hw = 6; hh = 3;
-  } else if(cfg.shape === 'crown' && (ART.sprites || {}).crown){
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({map:haloTex, color:COL.magenta, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:.8}));
-    glow.scale.set(13, 13, 1); glow.position.y = .4; rotor.add(glow); g.add(rotor);
-    const sp = artSprite('crown', 17); g.add(sp);
-    body = {flashSprite:sp.material, base:0xffffff}; hw = 7; hh = 6;
   } else if(cfg.shape === 'gunship'){
     const shell = new THREE.MeshLambertMaterial({color:0x1d1426, emissive:0x2a0808});
     body = new THREE.Mesh(unitBox, shell); body.scale.set(6, 1.9, 4.2); g.add(body);
@@ -1712,15 +1686,11 @@ function update(dt){
   if(worldCity.visible){
     groundTex.offset.y += S*dt/(560/8);
     for(const b of buildings){ b.position.z += S*dt; if(b.position.z > 30){ b.position.z -= CITY_SPAN; randomizeBuilding(b); } }
-    const blinkOn = Math.sin(tNow/400) > 0;
-    for(const l of blinkers) l.material = basicMat(blinkOn ? 0xdfe6ff : 0x2a2440);
     for(const c of streetCars){ c.m.position.z += (S + c.v)*dt; if(c.m.position.z > 30) c.m.position.z -= 290; if(c.m.position.z < -260) c.m.position.z += 290; }
     for(const c of skyCars){ c.m.position.z += (S + c.v)*dt; if(c.m.position.z > 30) c.m.position.z -= 290; if(c.m.position.z < -260) c.m.position.z += 290; }
     if(ENV === 'sim' || ENV === 'collapse'){
       const rate = ENV === 'collapse' ? 3 : 1;
-      if(Math.random() < dt*6*rate){ const b = pick(buildings); b.visible = !b.visible; }
-      G.glitchT -= dt;
-      if(G.glitchT <= 0 && Math.random() < dt*.6*rate){ canvas.classList.add('glitch'); G.glitchT = .12; setTimeout(() => canvas.classList.remove('glitch'), 120); }
+      if(Math.random() < dt*.8*rate){ const b = pick(buildings); b.visible = !b.visible; }
     }
   }
   if(worldTunnel.visible) for(const s of tunnelSegs){ s.position.z += S*dt; if(s.position.z > 28) s.position.z -= TSEG*TCOUNT; }
@@ -1826,7 +1796,7 @@ function update(dt){
         if(e.burst > 0){ e.burstGap = (e.burstGap || 0) - dt; if(e.burstGap <= 0){ fireAt(p, P.x + rand(-.6,.6), P.y + rand(-.4,.4), 38); e.burst--; e.burstGap = .14; } }
         if(e.holdT <= 0) e.state = 'out';
       } else { p.y += 9*dt; p.z -= 25*dt; if(p.y > 24){ scene.remove(e.m); enemies.splice(i, 1); continue; } }
-      const f2 = Math.sin(e.t*14) > 0; e.m.userData.lights[0].visible = f2; e.m.userData.lights[1].visible = !f2;
+      
     }
     if(!e.crossed && prevZ < 0 && p.z >= 0){
       e.crossed = true;
@@ -1956,9 +1926,8 @@ function update(dt){
       if(Math.random() < dt*14) burst(new THREE.Vector3(pos.x + rand(-3,3), pos.y + rand(-2,2), pos.z + rand(-2,2)), pick([COL.gold, COL.red, COL.magenta, COL.orange]), 10, 12);
       if(B.dieT > 2.2 && B.g.visible){ B.g.visible = false; burst(pos, COL.gold, 60, 22); burst(pos, COL.magenta, 40, 18); sfx.boom(); G.shake = .9; }
     }
-    if(B.body && B.body.flashSprite){ const on = B.flash > 0; if(on) B.flash -= dt; B.body.flashSprite.color.setHex(on ? 0xff9a6a : B.body.base); }
-    else if(B.body && B.body.flashMats){ const on = B.flash > 0; if(on) B.flash -= dt; B.body.flashMats.forEach(m => { m.emissiveIntensity = on ? 1.4 : .38; }); }
-    else if(B.body && B.body.material && B.body.material.emissive){ if(B.flash > 0){ B.flash -= dt; B.body.material.emissive.setHex(0xff6a2a); } else B.body.material.emissive.setHex(B.cfg.shape === 'crown' ? 0x6a4a10 : 0x2a0808); }
+    if(B.body && B.body.flashMats){ const on = B.flash > 0; if(on) B.flash -= dt; B.body.flashMats.forEach(m => { m.emissiveIntensity = on ? .6 : .38; }); }
+    else if(B.body && B.body.material && B.body.material.emissive){ if(B.flash > 0){ B.flash -= dt; B.body.material.emissive.setHex(0x4a1c10); } else B.body.material.emissive.setHex(B.cfg.shape === 'crown' ? 0x6a4a10 : 0x2a0808); }
     else if(B.flash > 0) B.flash -= dt;
   }
   if(G.endT >= 0 && playing){ G.endT += dt; if(G.endT > 9) endGame(true); }
