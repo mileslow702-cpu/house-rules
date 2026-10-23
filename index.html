@@ -196,6 +196,14 @@ body.touch #reels{top:calc(var(--safe-t) + 280px)}
 .app.under .cta.amber{background:var(--cyan);box-shadow:4px 4px 0 rgba(63,240,255,.3)}
 .ghost{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--gold);background:transparent;border:2px solid var(--line);padding:11px 16px;cursor:pointer}
 .ghost:hover{border-color:var(--gold)}
+/* email sign-in: puts the player in the Do Better Arcade on the North Star sheet */
+.gate{display:grid;gap:8px}
+.gate label{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--gold)}
+.gate-row{display:flex;gap:10px;flex-wrap:wrap}
+.gate input{flex:1 1 220px;min-width:0;font:500 18px var(--body);color:var(--ink);background:#0b0618;border:2px solid var(--line);padding:11px 12px;-webkit-user-select:text;user-select:text}
+.gate input:focus{border-color:var(--gold);outline:none}
+.gate input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.gate-err{margin:0;min-height:1em;font-size:14px;color:var(--danger)}
 .missions{margin:0;padding:0;list-style:none;display:grid;gap:6px}
 .mission{width:100%;display:grid;grid-template-columns:2.4em minmax(0,1fr) auto;gap:10px;align-items:baseline;text-align:left;font:inherit;color:var(--ink);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);padding:9px 12px;cursor:pointer}
 .mission:hover:not(:disabled){border-color:var(--gold)}
@@ -313,7 +321,13 @@ body.touch #reels{top:calc(var(--safe-t) + 280px)}
     <p class="eyebrow">A neon Las Vegas rail shooter</p>
     <h1 class="logo">House<br>Rules</h1>
     <p class="tag">Las Vegas, after the Singularity. A company called the House bought every casino, and every life is a line on its odds board. Deuce just wants his little brother home.</p>
-    <div class="btnrow">
+    <form class="gate" id="hrGate" hidden novalidate>
+      <label for="hrEmail">Enter your email to play</label>
+      <div class="gate-row"><input id="hrEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com" required><button class="cta" type="submit">Play</button></div>
+      <p class="gate-err" id="hrErr" role="alert"></p>
+      <p class="fine">Your email puts you in the Do Better Arcade with Miles Low's other games, and lets the Do Better Network reach you about the game.</p>
+    </form>
+    <div class="btnrow" id="hrPlay">
       <button class="cta" id="continueBtn" type="button">New game</button>
       <button class="ghost" id="prologueBtn" type="button">Watch the prologue</button>
     </div>
@@ -1603,7 +1617,7 @@ function endGame(win){
     SAVE.unlocked = Math.max(SAVE.unlocked, Math.min(CUR + 1, MISSIONS.length - 1)); SAVE.done[M.id] = true;
     if(pay > (SAVE.best[M.id] || 0)){ best = 'New best for this mission: ' + money(pay); SAVE.best[M.id] = pay; }
     else best = 'Best on this mission: ' + money(SAVE.best[M.id]);
-    writeSave(SAVE);
+    writeSave(SAVE); hrLog();
   } else if(SAVE.best[M.id]) best = 'Best on this mission: ' + money(SAVE.best[M.id]);
   $('#overEyebrow').textContent = win ? `Mission ${M.n} complete` : `Mission ${M.n} failed`;
   $('#overTitle').textContent = win ? M.name : (M.ship === 'truck' ? 'Cargo lost' : 'Wildcard down');
@@ -1982,6 +1996,43 @@ function hud(){
 
 /* ================= Loop ================= */
 freshState('title'); setEnv('city'); setShip('truck'); renderTitle();
+
+/* ================= Do Better Arcade: this player on the North Star sheet =================
+   Every update is saved on the device first and only cleared once the sheet confirms it, so nothing is lost offline. */
+const DBA = {
+  url: 'https://northstargame.vercel.app/api/arcade', key: 'dba_outbox_v1', game: 'house-rules', busy: false,
+  q(){ try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } catch(e) { return []; } },
+  keep(q){ try { localStorage.setItem(this.key, JSON.stringify(q.slice(-30))); } catch(e) {} },
+  log(rec){ rec = Object.assign({ game: this.game, lastSeen: Date.now() }, rec); this.keep(this.q().filter(x => x.email !== rec.email).concat(rec)); this.flush(); },
+  flush(){
+    const q = this.q(); if(!q.length || this.busy) return; this.busy = true;
+    fetch(this.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entries: q }), keepalive: true })
+      .then(r => { if(r.ok || r.status === 400){ const sent = new Set(q.map(x => x.email + x.lastSeen)); this.keep(this.q().filter(x => !sent.has(x.email + x.lastSeen))); } })
+      .catch(() => {}).finally(() => { this.busy = false; });
+  },
+};
+const hrGet = k => { try { return localStorage.getItem(k); } catch(e) { return null; } };
+const hrSet = (k, v) => { try { localStorage.setItem(k, String(v)); } catch(e) {} };
+function hrStats(){
+  const done = Object.keys(SAVE.done || {}).length;
+  return { email: hrGet('hr.email'), visits: +hrGet('hr.visits') || 1, minutes: Math.round((+hrGet('hr.playSec') || 0) / 6) / 10, firstSeen: +hrGet('hr.firstSeen') || Date.now(),
+    progress: done ? `${done} of ${MISSIONS.length} missions done` : 'Signed in' };
+}
+function hrLog(){ if(hrGet('hr.email')) DBA.log(hrStats()); }
+function hrShowGate(on){ $('#hrGate').hidden = !on; $('#hrPlay').hidden = on; $('#missionList').hidden = on; if(on) setTimeout(() => $('#hrEmail').focus(), 50); }
+$('#hrGate').addEventListener('submit', e => {
+  e.preventDefault();
+  const email = $('#hrEmail').value.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 120){ $('#hrErr').textContent = 'Enter a real email address to play.'; $('#hrEmail').focus(); return; }
+  $('#hrErr').textContent = '';
+  hrSet('hr.email', email); if(!hrGet('hr.firstSeen')) hrSet('hr.firstSeen', Date.now()); hrSet('hr.visits', 1);
+  hrLog(); hrShowGate(false); $('#continueBtn').focus();
+});
+if(hrGet('hr.email')){ hrSet('hr.visits', (+hrGet('hr.visits') || 0) + 1); hrShowGate(false); hrLog(); }
+else hrShowGate(true);
+setInterval(() => { if(G.state === 'play' && !document.hidden) hrSet('hr.playSec', (+hrGet('hr.playSec') || 0) + 5); }, 5000);
+addEventListener('pagehide', hrLog);
+setInterval(() => DBA.flush(), 60000);
 let last = performance.now();
 function frame(now){
   requestAnimationFrame(frame);
